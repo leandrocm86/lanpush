@@ -1,12 +1,25 @@
 package lanpush;
 
-import java.awt.TextArea;
+import java.awt.Desktop;
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
+import java.net.URL;
+
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 import io.Log;
+import swing.Fonte;
+import swing.RelativeLayout;
 import swing.SwingUtils;
+import swing.Toast;
+import system.Sistema;
 import system.SystemTrayFrame;
 import utils.CDI;
 import utils.Data;
@@ -56,15 +69,63 @@ public class Receiver {
     }
 
     private void showMessage(String msg) {
-    	msg = new Data().toStr(Data.DATA_dd_MM_HH_mm_ss) + ": " + msg + "\n";
     	if (GUI) {
-			CDI.get(TextArea.class).append(msg);
+    		CDI.get(JPanel.class).add(criarNovaLinha(msg));
 			CDI.get(SystemTrayFrame.class).restore();
     	}
     	else {
-    		System.out.println(msg);
+    		System.out.println(getHora() + msg);
     	}
 	}
+    
+    private JPanel criarNovaLinha(String msg) {
+    	JPanel novaLinha = new JPanel(SwingUtils.createLayout(RelativeLayout.X_AXIS, 10, 0, true));
+    	JButton copyBtn = new JButton("copy");
+    	copyBtn.addActionListener(new ActionListener() {
+    		@Override
+			public void actionPerformed(ActionEvent arg0) {
+				Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(msg), null);
+				Toast.makeToast(CDI.get(SystemTrayFrame.class), "Copied!", 2);
+			}
+		});
+    	JButton browseBtn = new JButton("browse");
+    	browseBtn.addActionListener(new ActionListener() {
+    		@Override
+			public void actionPerformed(ActionEvent arg0) {
+    			String urlBusca = msg.replaceAll(" ", "+");
+    			if (urlBusca.startsWith("www."))
+    				urlBusca = "https://" + urlBusca;
+    			else if (!urlBusca.startsWith("http"))
+    				urlBusca = "https://www.google.com/search?q=" + urlBusca;
+				try {
+					Desktop.getDesktop().browse(new URL(urlBusca).toURI());
+				}
+				catch (UnsupportedOperationException e) {
+					try {
+						Sistema.executar("xdg-open " + urlBusca);
+					}
+					catch (Throwable t) {
+						SwingUtils.showMessage("It's not possible to open the browser on the current system.");
+						Log.logaErro(t);
+					}
+				}
+				catch (Throwable t) {
+					Log.e("Erro ao tentar abrir navegador", t);
+				}
+			}
+		});
+		novaLinha.add(copyBtn, 1f);
+		novaLinha.add(browseBtn, 1f);
+		novaLinha.add(new JLabel(getHora() + msg), 8f);
+		if (SwingUtils.getScreenHeight() > 1080)
+			Fonte.ARIAL_30.set(copyBtn, browseBtn);
+		SwingUtils.setDefaultFont(novaLinha);
+		return novaLinha;
+    }
+    
+    private String getHora() {
+    	return new Data().toStr(Data.DATA_dd_MM_HH_mm_ss) + ": ";
+    }
 
 	private DatagramPacket reconectar() throws SocketException {
         if (udpSocket != null) {

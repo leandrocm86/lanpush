@@ -1,7 +1,6 @@
 package lanpush;
 
 import java.awt.BorderLayout;
-import java.awt.TextArea;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -11,10 +10,10 @@ import java.io.IOException;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
 import io.Log;
-import swing.Fonte;
 import swing.RelativeLayout;
 import swing.SwingUtils;
 import system.Sistema;
@@ -45,18 +44,21 @@ public class LanPush {
 			else {
 				Log.i("Iniciando LANPUSH com GUI");
 				mainFrame = new SystemTrayFrame("Lanpush", Sistema.getSystemPath() + "lanpush.png", true);
-			    mainFrame.setSize(800, 700);
+				CDI.set(mainFrame);
+				if (SwingUtils.getScreenHeight() > 1080)
+					mainFrame.setSize(1500, 500);
+				else
+					mainFrame.setSize(800, 500);
 			    mainFrame.setLayout(new BorderLayout());
 			    mainPane = new JPanel(SwingUtils.createLayout(RelativeLayout.Y_AXIS));
 				mainFrame.add(mainPane);
-				CDI.set(mainFrame);
 				
 				createInputPane();
-				createTextArea();
+				createMessagePane();
 					
 				mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 				SwingUtils.centralizarJanela(mainFrame);
-				Fonte.ARIAL_40.set(mainPane);
+				SwingUtils.setDefaultFont(mainPane);
 				mainFrame.setVisible(true);
 				new Receiver(true).run();
 			}
@@ -102,15 +104,18 @@ public class LanPush {
 		inputPane.add(okButton, 2f);
 	}
 	
-	private static void createTextArea() {
-		TextArea textArea = new TextArea();
-		CDI.set(textArea);
-		mainPane.add(textArea, 9f);
+	private static void createMessagePane() {
+		JPanel msgPane = new JPanel(SwingUtils.createLayout(RelativeLayout.Y_AXIS, 0, 0, true));
+		CDI.set(msgPane);
+		JScrollPane scrollPane = SwingUtils.createScrollPane(msgPane, 30, true);
+		mainPane.add(scrollPane, 7f);
 	}
 	
 	private static void enviarMensagem(String msg) {
 		try {
 			Sender.send(msg);
+			if (input != null)
+				input.setText("");
 		} catch (IOException e) {
 			SwingUtils.showMessage(Erros.resumo(e));
 			SwingUtils.showMessage(Erros.stackTraceToStr(e, 10));

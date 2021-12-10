@@ -25,6 +25,8 @@ import utils.CDI;
 import utils.Data;
 
 public class Receiver {
+	
+	private static final int PORT = Config.getInt("connection.port");
 
     private static DatagramSocket udpSocket;
     private static long ultimaMensagem = 0;
@@ -48,7 +50,7 @@ public class Receiver {
             try {
                 Log.i("Iniciando conexão com " + erros + " erros.");
                 DatagramPacket packet = reconectar();
-                Log.i("UDP client: about to wait to receive");
+                Log.i("UDP client: about to wait to receive on port " + PORT);
                 udpSocket.receive(packet);
                 String text = new String(packet.getData(), 0, packet.getLength()).trim();
                 Log.i("Received: " + text);
@@ -132,7 +134,7 @@ public class Receiver {
             Log.i("Socket já estava instanciado ao começar a ouvir. Será fechado...");
             fecharConexao();
         }
-        udpSocket = new DatagramSocket(1050);
+        udpSocket = new DatagramSocket(PORT);
         byte[] message = new byte[8000];
         return new DatagramPacket(message, message.length);
     }

@@ -16,10 +16,10 @@ import javax.swing.JTextField;
 import io.Log;
 import swing.RelativeLayout;
 import swing.SwingUtils;
-import system.Sistema;
 import system.SystemTrayFrame;
 import utils.CDI;
 import utils.Erros;
+import utils.Str;
 
 public class LanPush {
 	
@@ -29,8 +29,10 @@ public class LanPush {
 	
 	public static void main(String[] args) {
 		
+//		Files.setTestFolder("/home/lcm/SerproDrive/apps/lanpush/tests/");
+		
 		try {
-			Log.iniciar(Sistema.getSystemPath() + "lanpush.log");
+			Log.iniciar(Files.getLogPath());
 			if (args != null && args.length > 0) {
 				if ("-l".equals(args[0]) || "--listen".equals(args[0])) {
 					Log.i("Iniciando listener sem GUI");
@@ -43,7 +45,7 @@ public class LanPush {
 			}
 			else {
 				Log.i("Iniciando LANPUSH com GUI");
-				mainFrame = new SystemTrayFrame("Lanpush", Sistema.getSystemPath() + "lanpush.png", true);
+				mainFrame = new SystemTrayFrame("Lanpush", Files.getIconPath(), true);
 				CDI.set(mainFrame);
 				if (SwingUtils.getScreenHeight() > 1080)
 					mainFrame.setSize(1500, 500);
@@ -62,18 +64,15 @@ public class LanPush {
 				mainFrame.setVisible(true);
 				new Receiver(true).run();
 			}
-			Log.terminar();
 		}
 		catch(Throwable t) {
 			if (args == null || args.length == 0) {
-				SwingUtils.showMessage(Erros.resumo(t));
-				SwingUtils.showMessage(Erros.stackTraceToStr(t, 10));
+				String message = "Error! " + (Str.vazia(t.getMessage()) ? "See log for more info." : t.getMessage());
+				SwingUtils.showMessage(message);
 			}
-			else {
-				System.out.println(Erros.resumo(t));
-				System.out.println(Erros.stackTraceToStr(t, 30));
-			}
+			Log.logaErro(t);
 		}
+		Log.terminar();
 	}
 	
 	private static void createInputPane() {

@@ -10,7 +10,7 @@ import io.Log;
 import utils.Str;
 
 public class Sender {
-    private static final Str[] HOSTS = Config.getAll("send_to_ips");
+    private static final Str[] HOSTS = Config.getAll("connection.send_to_ips");
     private static final int PORT = Config.getInt("connection.port");
 
     public static void send(String message) throws IOException {

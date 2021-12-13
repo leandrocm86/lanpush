@@ -32,11 +32,9 @@ public class Receiver {
     private static long ultimaMensagem = 0;
     private int erros = 0;
     private boolean terminando = false;
-    private boolean GUI;
     
-    public Receiver(boolean GUI) {
+    public Receiver() {
     	CDI.set(this);
-    	this.GUI = GUI;
 		Thread fechamento = new Thread(new Runnable() { // Gancho/Trigger de fechamento no programa.
 	        public void run() {
 	        	terminar();
@@ -66,13 +64,15 @@ public class Receiver {
                 fecharConexao();
             }
         }
-        SwingUtils.showMessage("Como houveram 3 erros, o client está deixando de ouvir.");
+        LanPush.alert("Since there were 3 failures, the client will no longer try to connect.");
         System.exit(1);
     }
 
     private void showMessage(String msg) {
-    	if (GUI) {
+    	if (LanPush.isGUI()) {
     		CDI.get(JPanel.class).add(criarNovaLinha(msg));
+    		CDI.get(JPanel.class).repaint();
+    		CDI.get(JPanel.class).revalidate();
 			CDI.get(SystemTrayFrame.class).restore();
     	}
     	else {

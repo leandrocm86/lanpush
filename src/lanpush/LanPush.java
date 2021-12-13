@@ -26,6 +26,7 @@ public class LanPush {
 	private static JFrame mainFrame;
 	private static JPanel mainPane;
 	private static JTextField input;
+	private static boolean GUI = false;
 	
 	public static void main(String[] args) {
 		
@@ -36,7 +37,7 @@ public class LanPush {
 			if (args != null && args.length > 0) {
 				if ("-l".equals(args[0]) || "--listen".equals(args[0])) {
 					Log.i("Iniciando listener sem GUI");
-					new Receiver(false).run();
+					new Receiver().run();
 				}
 				else {
 					Log.i("Enviando mensagem: " + args[0]);
@@ -45,6 +46,7 @@ public class LanPush {
 			}
 			else {
 				Log.i("Iniciando LANPUSH com GUI");
+				GUI = true;
 				mainFrame = new SystemTrayFrame("Lanpush", Files.getIconPath(), true);
 				CDI.set(mainFrame);
 				if (SwingUtils.getScreenHeight() > 1080)
@@ -62,15 +64,16 @@ public class LanPush {
 				SwingUtils.centralizarJanela(mainFrame);
 				SwingUtils.setDefaultFont(mainPane);
 				mainFrame.setVisible(true);
-				new Receiver(true).run();
+				new Receiver().run();
 			}
 		}
 		catch(Throwable t) {
+			Log.logaErro(t);
+			String message = "Error! " + (Str.vazia(t.getMessage()) ? "See log for more info." : t.getMessage());
 			if (args == null || args.length == 0) {
-				String message = "Error! " + (Str.vazia(t.getMessage()) ? "See log for more info." : t.getMessage());
 				SwingUtils.showMessage(message);
 			}
-			Log.logaErro(t);
+			else System.out.println(message);
 		}
 		Log.terminar();
 	}
@@ -119,5 +122,16 @@ public class LanPush {
 			SwingUtils.showMessage(Erros.resumo(e));
 			SwingUtils.showMessage(Erros.stackTraceToStr(e, 10));
 		}
+	}
+	
+	public static void alert(String msg) {
+		if (GUI) {
+			SwingUtils.showMessage(msg);
+		}
+		else System.out.println(msg);
+	}
+	
+	public static boolean isGUI() {
+		return GUI;
 	}
 }

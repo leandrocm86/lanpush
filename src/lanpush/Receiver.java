@@ -70,10 +70,10 @@ public class Receiver {
 
     private void showMessage(String msg) {
     	if (LanPush.isGUI()) {
-    		CDI.get(JPanel.class).add(criarNovaLinha(msg));
-    		CDI.get(JPanel.class).repaint();
-    		CDI.get(JPanel.class).revalidate();
-			CDI.get(SystemTrayFrame.class).restore();
+    		JPanel pane = CDI.get(JPanel.class);
+    		pane.add(criarNovaLinha(msg));
+    		SystemTrayFrame frame = CDI.get(SystemTrayFrame.class);
+    		frame.restore();
     	}
     	else {
     		System.out.println(getHora() + msg);
@@ -118,7 +118,7 @@ public class Receiver {
 		});
 		novaLinha.add(copyBtn, 1f);
 		novaLinha.add(browseBtn, 1f);
-		novaLinha.add(new JLabel(getHora() + msg), 8f);
+		novaLinha.add(new JLabel(getHora() + (msg.length() > 30 ? msg.substring(0, 30) + "(...)" : msg)), 8f);
 		if (SwingUtils.getScreenHeight() > 1080)
 			Fonte.ARIAL_30.set(copyBtn, browseBtn);
 		SwingUtils.setDefaultFont(novaLinha);

@@ -49,10 +49,7 @@ public class LanPush {
 				GUI = true;
 				mainFrame = new SystemTrayFrame("Lanpush", Files.getIconPath(), true);
 				CDI.set(mainFrame);
-				if (SwingUtils.getScreenHeight() > 1080)
-					mainFrame.setSize(1500, 500);
-				else
-					mainFrame.setSize(800, 500);
+				mainFrame.setSize(Config.getInt("gui.window.width"), Config.getInt("gui.window.height"));
 			    mainFrame.setLayout(new BorderLayout());
 			    mainPane = new JPanel(SwingUtils.createLayout(RelativeLayout.Y_AXIS));
 				mainFrame.add(mainPane);

@@ -7,7 +7,7 @@
   	<dependency>
   		<groupId>l86.utils</groupId>
   		<artifactId>utils</artifactId>
-  		<version>1.37</version>
+  		<version>1.38</version>
   	</dependency>
   </dependencies>
   <build>

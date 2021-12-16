@@ -12,8 +12,11 @@ import utils.Str;
 public class Sender {
     private static final Str[] HOSTS = Config.getAll("connection.send_to_ips");
     private static final int PORT = Config.getInt("connection.port");
+    
+    private static long lastSent = 0;
 
     public static void send(String message) throws IOException {
+    	lastSent = System.currentTimeMillis();
     	
     	for (Str host : HOSTS) {
     		Log.i("Sending message to " + host);
@@ -29,5 +32,9 @@ public class Sender {
 	        dsocket.send(packet);
 	        dsocket.close();
     	}
+    }
+    
+    public static long getLastSent() {
+    	return lastSent;
     }
 }

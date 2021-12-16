@@ -50,6 +50,10 @@ public class Receiver {
                 DatagramPacket packet = reconectar();
                 Log.i("UDP client: about to wait to receive on port " + PORT);
                 udpSocket.receive(packet);
+                if (System.currentTimeMillis() - Sender.getLastSent() < 1000) {
+                	Log.i("Escutador ignorando mensagem que o app acabou de enviar.");
+                	continue;
+                }
                 String text = new String(packet.getData(), 0, packet.getLength()).trim();
                 Log.i("Received: " + text);
                 if (System.currentTimeMillis() - ultimaMensagem > 3000) // Espera um tempo pra ouvir de novo, evitando mensagens duplicadas.

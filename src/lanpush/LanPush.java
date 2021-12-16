@@ -32,12 +32,14 @@ public class LanPush {
 		
 //		Files.setTestFolder("/home/lcm/SerproDrive/apps/lanpush/tests/");
 		
+		Receiver receiver = null;
+		
 		try {
 			Log.iniciar(Files.getLogPath());
 			if (args != null && args.length > 0) {
 				if ("-l".equals(args[0]) || "--listen".equals(args[0])) {
 					Log.i("Iniciando listener sem GUI");
-					new Receiver().run();
+					receiver = new Receiver();
 				}
 				else {
 					Log.i("Enviando mensagem: " + args[0]);
@@ -66,10 +68,13 @@ public class LanPush {
 				}
 				else mainFrame.setVisible(true);
 				
-				new Receiver().run();
+				receiver = new Receiver();
 			}
+			
+			if (receiver != null)
+				receiver.run();
 		}
-		catch(Throwable t) {
+		catch (Throwable t) {
 			Log.logaErro(t);
 			String message = "Error! " + (Str.vazia(t.getMessage()) ? "See log for more info." : t.getMessage());
 			if (args == null || args.length == 0) {
@@ -78,6 +83,8 @@ public class LanPush {
 			else System.out.println(message);
 		}
 		finally {
+			if (receiver != null)
+				receiver.terminar();
 			Log.terminar();
 		}
 		System.exit(0);

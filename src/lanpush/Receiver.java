@@ -65,7 +65,6 @@ public class Receiver {
             }
         }
         LanPush.alert("Since there were 3 failures, the client will no longer try to connect.");
-        System.exit(1);
     }
 
     private void showMessage(String msg) {

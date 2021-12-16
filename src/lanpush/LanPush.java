@@ -23,7 +23,7 @@ import utils.Str;
 
 public class LanPush {
 	
-	private static JFrame mainFrame;
+	private static SystemTrayFrame mainFrame;
 	private static JPanel mainPane;
 	private static JTextField input;
 	private static boolean GUI = false;
@@ -60,7 +60,12 @@ public class LanPush {
 				mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 				SwingUtils.centralizarJanela(mainFrame);
 				SwingUtils.setDefaultFont(mainPane);
-				mainFrame.setVisible(true);
+				
+				if (Config.getBoolean("gui.start_in_tray", false) == Boolean.TRUE) {
+					mainFrame.minimizeToTray();
+				}
+				else mainFrame.setVisible(true);
+				
 				new Receiver().run();
 			}
 		}
@@ -72,7 +77,10 @@ public class LanPush {
 			}
 			else System.out.println(message);
 		}
-		Log.terminar();
+		finally {
+			Log.terminar();
+		}
+		System.exit(0);
 	}
 	
 	private static void createInputPane() {

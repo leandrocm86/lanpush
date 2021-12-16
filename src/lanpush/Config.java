@@ -45,4 +45,15 @@ public class Config {
 		else return null;
 	}
 	
+	public static Boolean getBoolean(String key) {
+		return getBoolean(key, true);
+	}
+	
+	public static Boolean getBoolean(String key, boolean obrigatorio) {
+		Str value = get(key, obrigatorio);
+		if (value != null)
+			return value.minusculo().em("true", "yes");
+		else return null;
+	}
+	
 }

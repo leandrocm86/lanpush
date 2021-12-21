@@ -14,6 +14,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
 import io.Log;
+import swing.Fonte;
 import swing.RelativeLayout;
 import swing.SwingUtils;
 import system.SystemTrayFrame;
@@ -35,7 +36,9 @@ public class LanPush {
 		Receiver receiver = null;
 		
 		try {
-			Log.iniciar(Files.getLogPath());
+			if (Config.getBoolean("log.output_to_console"))
+				Log.setConsole(System.out);
+			Log.iniciar(Config.get("log.file", false));
 			if (args != null && args.length > 0) {
 				if ("-l".equals(args[0]) || "--listen".equals(args[0])) {
 					Log.i("Iniciando listener sem GUI");
@@ -61,7 +64,7 @@ public class LanPush {
 					
 				mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 				SwingUtils.centralizarJanela(mainFrame);
-				SwingUtils.setDefaultFont(mainPane);
+				new Fonte("Arial", Config.getInt("gui.font.size")).set(mainPane);
 				
 				if (Config.getBoolean("gui.start_in_tray", false) == Boolean.TRUE) {
 					mainFrame.minimizeToTray();

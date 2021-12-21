@@ -30,6 +30,9 @@ public class Receiver {
 
     private static DatagramSocket udpSocket;
     private static long ultimaMensagem = 0;
+    private static final int MAX_LENGTH = Config.getInt("gui.max_message_length_display");
+    private static final boolean AUTO_MSG = Config.getBoolean("connection.auto_message");
+    private static final int FONT_SIZE = Config.getInt("gui.font.size");
     private int erros = 0;
     private boolean terminando = false;
     
@@ -50,13 +53,13 @@ public class Receiver {
                 DatagramPacket packet = reconectar();
                 Log.i("UDP client: about to wait to receive on port " + PORT);
                 udpSocket.receive(packet);
-                if (System.currentTimeMillis() - Sender.getLastSent() < 1000) {
+                if (!AUTO_MSG && System.currentTimeMillis() - Sender.getLastSent() < 1000) {
                 	Log.i("Escutador ignorando mensagem que o app acabou de enviar.");
                 	continue;
                 }
                 String text = new String(packet.getData(), 0, packet.getLength()).trim();
                 Log.i("Received: " + text);
-                if (System.currentTimeMillis() - ultimaMensagem > 3000) // Espera um tempo pra ouvir de novo, evitando mensagens duplicadas.
+                if (System.currentTimeMillis() - ultimaMensagem > 2000) // Espera um tempo pra ouvir de novo, evitando mensagens duplicadas.
                     showMessage(text);
                 ultimaMensagem = System.currentTimeMillis();
             } catch (Throwable t) {
@@ -121,10 +124,11 @@ public class Receiver {
 		});
 		novaLinha.add(copyBtn, 1f);
 		novaLinha.add(browseBtn, 1f);
-		novaLinha.add(new JLabel(getHora() + (msg.length() > 30 ? msg.substring(0, 30) + "(...)" : msg)), 8f);
-		if (SwingUtils.getScreenHeight() > 1080)
-			Fonte.ARIAL_30.set(copyBtn, browseBtn);
-		SwingUtils.setDefaultFont(novaLinha);
+		
+		JLabel label = new JLabel(getHora() + (msg.length() > MAX_LENGTH ? msg.substring(0, MAX_LENGTH) + "(...)" : msg));
+		novaLinha.add(label, 8f);
+		new Fonte("Arial", FONT_SIZE).set(label);
+		new Fonte("Arial", (int) Math.round(FONT_SIZE * 0.7)).set(copyBtn, browseBtn);
 		return novaLinha;
     }
     

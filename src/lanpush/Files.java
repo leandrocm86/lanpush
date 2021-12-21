@@ -17,16 +17,12 @@ public class Files {
 		Log.i("Changing path to " + rootPath);
 	}
 	
-	public static String getLogPath() {
-		return rootPath + "lanpush.log";
-	}
-	
 	public static String getIconPath() {
 		return rootPath + "lanpush.png";
 	}
 	
 	public static String getConfigPath() {
-		return rootPath + "config.ini";
+		return rootPath + "lanpush-cfg.ini";
 	}
 
 }

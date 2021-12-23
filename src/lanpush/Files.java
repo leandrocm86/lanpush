@@ -24,5 +24,9 @@ public class Files {
 	public static String getConfigPath() {
 		return rootPath + "lanpush-cfg.ini";
 	}
+	
+	public static String getLogPath() {
+		return Config.get("log.file.path") != null ? Config.get("log.file.path").val() : rootPath + "lanpush.log";
+	}
 
 }

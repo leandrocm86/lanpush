@@ -17,6 +17,7 @@ import io.Log;
 import swing.Fonte;
 import swing.RelativeLayout;
 import swing.SwingUtils;
+import swing.Toast;
 import system.SystemTrayFrame;
 import utils.CDI;
 import utils.Erros;
@@ -38,7 +39,8 @@ public class LanPush {
 		try {
 			if (Config.getBoolean("log.output_to_console"))
 				Log.setConsole(System.out);
-			Log.iniciar(Config.get("log.file", false));
+			if (Config.getBoolean("log.file.enabled"))
+				Log.iniciar(Files.getLogPath());
 			if (args != null && args.length > 0) {
 				if ("-l".equals(args[0]) || "--listen".equals(args[0])) {
 					Log.i("Iniciando listener sem GUI");
@@ -133,6 +135,7 @@ public class LanPush {
 			Sender.send(msg);
 			if (input != null)
 				input.setText("");
+			Toast.makeToast(CDI.get(SystemTrayFrame.class), "MESSAGE SENT!", 2);
 		} catch (IOException e) {
 			SwingUtils.showMessage(Erros.resumo(e));
 			SwingUtils.showMessage(Erros.stackTraceToStr(e, 10));

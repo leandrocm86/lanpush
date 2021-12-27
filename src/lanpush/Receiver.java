@@ -29,10 +29,10 @@ public class Receiver {
 	private static final int PORT = Config.getInt("connection.port");
 
     private static DatagramSocket udpSocket;
-    private static long ultimaMensagem = 0;
     private static final int MAX_LENGTH = Config.getInt("gui.max_message_length_display");
-    private static final boolean AUTO_MSG = Config.getBoolean("connection.auto_message");
+    private static final boolean AUTO_MSG = Config.getBoolean("gui.auto_message");
     private static final int FONT_SIZE = Config.getInt("gui.font.size");
+    private static final boolean EXIT_ON_RECEIVE = Config.getBoolean("connection.exit_on_receive");
     private int erros = 0;
     private boolean terminando = false;
     
@@ -59,9 +59,9 @@ public class Receiver {
                 }
                 String text = new String(packet.getData(), 0, packet.getLength()).trim();
                 Log.i("Received: " + text);
-                if (System.currentTimeMillis() - ultimaMensagem > 2000) // Espera um tempo pra ouvir de novo, evitando mensagens duplicadas.
-                    showMessage(text);
-                ultimaMensagem = System.currentTimeMillis();
+                showMessage(text);
+                if (EXIT_ON_RECEIVE)
+                	return;
             } catch (Throwable t) {
             	if (!terminando) {
 	                erros++;

@@ -26,7 +26,7 @@ public class Files {
 	}
 	
 	public static String getLogPath() {
-		return Config.get("log.file.path") != null ? Config.get("log.file.path").val() : rootPath + "lanpush.log";
+		return Config.get("log.file.path", false) != null ? Config.get("log.file.path").val() : rootPath + "lanpush.log";
 	}
 
 }

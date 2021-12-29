@@ -33,6 +33,8 @@ public class Receiver {
     private static final boolean AUTO_MSG = Config.getBoolean("gui.auto_message");
     private static final int FONT_SIZE = Config.getInt("gui.font.size");
     private static final boolean EXIT_ON_RECEIVE = Config.getBoolean("connection.exit_on_receive");
+    private static final boolean ON_RECEIVE_RESTORE = Config.getBoolean("gui.onreceive.restore");
+    private static final boolean ON_RECEIVE_NOTIFICATION = Config.getBoolean("gui.onreceive.notification");
     private int erros = 0;
     private boolean terminando = false;
     
@@ -79,7 +81,17 @@ public class Receiver {
     		JPanel pane = CDI.get(JPanel.class);
     		pane.add(criarNovaLinha(msg));
     		SystemTrayFrame frame = CDI.get(SystemTrayFrame.class);
-    		frame.restore();
+    		if (ON_RECEIVE_RESTORE)
+    			frame.restore();
+    		if (ON_RECEIVE_NOTIFICATION) {
+    			frame.addMessageListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						frame.restore();
+					}
+				});
+    			frame.displayMessage("LANPUSH", " >>> MESSAGE RECEIVED: " + msg);
+    		}
     	}
     	else {
     		System.out.println(getHora() + msg);

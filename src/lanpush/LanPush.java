@@ -21,7 +21,6 @@ import swing.Toast;
 import system.SystemTrayFrame;
 import utils.CDI;
 import utils.Erros;
-import utils.Str;
 
 public class LanPush {
 	
@@ -81,7 +80,12 @@ public class LanPush {
 		}
 		catch (Throwable t) {
 			Log.logaErro(t);
-			String message = "Error! " + (Str.vazia(t.getMessage()) ? "See log for more info." : t.getMessage());
+			String message = "Error! ";
+			if (Log.gravando()) 
+				message += "See log for more info.";
+			else {
+				message += Erros.resumo(t);
+			}
 			if (args == null || args.length == 0) {
 				SwingUtils.showMessage(message);
 			}

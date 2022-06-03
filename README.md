@@ -3,7 +3,12 @@
 
 
 LANPUSH is a utility to exchange text messages between devices in the same local network.<br>
-**No internet required! No login!** Just send a message and all configured devices in the same LAN will read it.
+No internet required! No login! Just send a message and all configured devices in the same LAN will be notified with it.
+
+#### LANPUSH is available for PCs with Java (Windows/Linux/Mac) and phones with Android.
+PC client: https://github.com/leandrocm86/lanpush/releases<br>
+For the Android app, check the project on https://github.com/leandrocm86/lanpush-android<br>
+Both projects are free, open sourced, have no ads, and are open to suggestions.
 
 #### Use cases:
 - Share a link between PC and phone:
@@ -15,10 +20,6 @@ Once a message is sent, all PCs and Android phones on the same wifi will be able
 With LANPUSH your server can easily send you warnings even when no internet is available.
 You can also go the other way around, sending commands for the server to read and start your tasks.
 Tired of going through SSH everytime just to start trivial jobs? Make your server act upon the messages it receives. You can configure lanpush to log messages on a predefined file, and also choose IPs and ports to listen to.
-
-#### LANPUSH is available for PCs with Java (Windows/Linux/Mac) and phones with Android.
-For the Android app, check the project on https://github.com/leandrocm86/lanpush-android<br>
-Both projects are free, open sourced, have no ads, and are open to suggestions.
 
 #### Usage:
 

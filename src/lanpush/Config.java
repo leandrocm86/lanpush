@@ -52,7 +52,7 @@ public class Config {
 	public static Boolean getBoolean(String key, boolean obrigatorio) {
 		Str value = get(key, obrigatorio);
 		if (value != null)
-			return value.minusculo().em("true", "yes");
+			return value.minusculo().em("true", "yes", "on");
 		else return null;
 	}
 	

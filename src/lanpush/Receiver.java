@@ -36,11 +36,10 @@ public class Receiver {
     private static final boolean ON_RECEIVE_RESTORE = Config.getBoolean("gui.onreceive.restore");
     private static final boolean ON_RECEIVE_NOTIFICATION = Config.getBoolean("gui.onreceive.notification");
     private int erros = 0;
-    private boolean terminando = false;
+    private boolean finishing = false;
     
     public Receiver() {
-    	CDI.set(this);
-		Thread fechamento = new Thread(new Runnable() { // Gancho/Trigger de fechamento no programa.
+		Thread fechamento = new Thread(new Runnable() { // Trigger for program closing.
 	        public void run() {
 	        	terminar();
 	        }
@@ -49,14 +48,14 @@ public class Receiver {
     }
 
     public void run() {
-        while (erros < 3 && !terminando) {
+        while (erros < 3 && !finishing) {
             try {
-                Log.i("Iniciando conexão com " + erros + " erros.");
+                Log.i("Starting connection with " + erros + " erros.");
                 DatagramPacket packet = reconectar();
-                Log.i("UDP client: about to wait to receive on port " + PORT);
+                Log.i("About to listen on UDP port " + PORT);
                 udpSocket.receive(packet);
                 if (!AUTO_MSG && System.currentTimeMillis() - Sender.getLastSent() < 1000) {
-                	Log.i("Escutador ignorando mensagem que o app acabou de enviar.");
+                	Log.i("Receiver ignoring message the app itself just sent.");
                 	continue;
                 }
                 String text = new String(packet.getData(), 0, packet.getLength()).trim();
@@ -65,19 +64,19 @@ public class Receiver {
                 if (EXIT_ON_RECEIVE)
                 	return;
             } catch (Throwable t) {
-            	if (!terminando) {
+            	if (!finishing) {
 	                erros++;
-	                Log.e("Erro ao tentar ouvir porta", t);
+	                Log.e(t, "Error while trying to listen UDP port");
             	}
             } finally {
                 fecharConexao();
             }
         }
-        LanPush.alert("Since there were 3 failures, the client will no longer try to connect.");
+        Lanpush.alert("Since there were 3 failures, the client will no longer try to connect.");
     }
 
     private void showMessage(String msg) {
-    	if (LanPush.isGUI()) {
+    	if (Lanpush.isGUI()) {
     		JPanel pane = CDI.get(JPanel.class);
     		pane.add(criarNovaLinha(msg));
     		SystemTrayFrame frame = CDI.get(SystemTrayFrame.class);
@@ -130,7 +129,7 @@ public class Receiver {
 					}
 				}
 				catch (Throwable t) {
-					Log.e("Erro ao tentar abrir navegador", t);
+					Log.e(t, "Error while trying to open browser");
 				}
 			}
 		});
@@ -150,7 +149,7 @@ public class Receiver {
 
 	private DatagramPacket reconectar() throws SocketException {
         if (udpSocket != null) {
-            Log.i("Socket já estava instanciado ao começar a ouvir. Será fechado...");
+            Log.i("Socket was already created when trying new connection. It will be closed...");
             fecharConexao();
         }
         udpSocket = new DatagramSocket(PORT);
@@ -162,24 +161,24 @@ public class Receiver {
         if (udpSocket != null) {
             try {
                 if (udpSocket.isClosed())
-                    Log.i("Conexão já se encontra fechada.");
+                    Log.i("Connection already closed.");
                 else {
-                    Log.i("Fechando conexão...");
+                    Log.i("Closing connection...");
 //                    udpSocket.disconnect(); -> Disconnect estava travando o fechamento da aplicacao.
                     udpSocket.close();
                 }
                 udpSocket = null;
             } catch (Throwable t) {
                 erros++;
-                Log.e("Erro ao tentar fechar conexão", t);
+                Log.e(t, "Error while trying to close connection.");
             }
         } else {
-            Log.i("Conexão nula não precisa ser fechada.");
+            Log.i("Null connection doesn't need to be closed.");
         }
     }
     
     public void terminar() {
-    	this.terminando = true;
+    	this.finishing = true;
     	fecharConexao();
     }
 }

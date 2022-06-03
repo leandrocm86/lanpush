@@ -22,7 +22,7 @@ import system.SystemTrayFrame;
 import utils.CDI;
 import utils.Erros;
 
-public class LanPush {
+public class Lanpush {
 	
 	private static SystemTrayFrame mainFrame;
 	private static JPanel mainPane;
@@ -30,8 +30,6 @@ public class LanPush {
 	private static boolean GUI = false;
 	
 	public static void main(String[] args) {
-		
-//		Files.setTestFolder("/home/lcm/SerproDrive/apps/lanpush/tests/");
 		
 		Receiver receiver = null;
 		
@@ -42,18 +40,18 @@ public class LanPush {
 				Log.iniciar(Files.getLogPath());
 			if (args != null && args.length > 0) {
 				if ("-l".equals(args[0]) || "--listen".equals(args[0])) {
-					Log.i("Iniciando listener sem GUI");
+					Log.i("Starting listener without GUI");
 					receiver = new Receiver();
 				}
 				else {
-					Log.i("Enviando mensagem: " + args[0]);
+					Log.i("Sending message: " + args[0]);
 					enviarMensagem(args[0]);
 				}
 			}
 			else {
-				Log.i("Iniciando LANPUSH com GUI");
+				Log.i("Starting LANPUSH with GUI");
 				GUI = true;
-				mainFrame = new SystemTrayFrame("Lanpush", Files.getIconPath(), true);
+				mainFrame = new SystemTrayFrame("LANPUSH", Files.getIconPath(), true);
 				CDI.set(mainFrame);
 				mainFrame.setSize(Config.getInt("gui.window.width"), Config.getInt("gui.window.height"));
 			    mainFrame.setLayout(new BorderLayout());

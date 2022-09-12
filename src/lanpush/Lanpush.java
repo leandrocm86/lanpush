@@ -24,7 +24,7 @@ import utils.Erros;
 
 public class Lanpush {
 	
-	private static SystemTrayFrame mainFrame;
+	private static JFrame mainFrame;
 	private static JPanel mainPane;
 	private static JTextField input;
 	private static boolean GUI = false;
@@ -51,7 +51,8 @@ public class Lanpush {
 			else {
 				Log.i("Starting LANPUSH with GUI");
 				GUI = true;
-				mainFrame = new SystemTrayFrame("LANPUSH", Files.getIconPath(), true);
+				mainFrame = Config.getBoolean("gui.minimize_to_tray", false) ? new SystemTrayFrame("LANPUSH", Files.getIconPath(), true) : new JFrame("LANPUSH");
+				mainFrame.setVisible(true);
 				CDI.set(mainFrame);
 				mainFrame.setSize(Config.getInt("gui.window.width"), Config.getInt("gui.window.height"));
 			    mainFrame.setLayout(new BorderLayout());
@@ -65,10 +66,12 @@ public class Lanpush {
 				SwingUtils.centralizarJanela(mainFrame);
 				new Fonte("Arial", Config.getInt("gui.font.size")).set(mainPane);
 				
-				if (Config.getBoolean("gui.start_in_tray", false) == Boolean.TRUE) {
-					mainFrame.minimizeToTray();
+				if (Config.getBoolean("gui.start_minimized", false) == Boolean.TRUE) {
+					mainFrame.setState(JFrame.ICONIFIED);
 				}
-				else mainFrame.setVisible(true);
+				else {
+					mainFrame.setState(JFrame.NORMAL);
+				}
 				
 				receiver = new Receiver();
 			}

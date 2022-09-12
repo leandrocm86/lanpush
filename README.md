@@ -44,7 +44,8 @@ The configurations below only affect Graphical Interface usage:
 - *gui.window.width*: Width of the program window.
 - *gui.window.height*: Height of the program window.
 - *gui.font.size*: Font size for messages and buttons (may be useful to change on high-dpi displays).
-- *gui.start_in_tray*: Indicates if the program should appear in system tray. It's on by default.
+- *gui.minimize_to_tray*: Indicates if the program should appear in system tray. It's on by default.
+- *gui.start_minimized*: Indicates if the program should start minimized. It's false by default.
 - *gui.max_message_length_display*: Maximum number of characters to be displayed for each message. The default is 50. If messages are longer than this, they'll be shown truncated with a "(...)" at the end. Only affects presentation, not the content to be copied or browsed.
 - *gui.auto_message*: Indicates whether the application should notify even messagens sent by itself. It's off by default.
 - *gui.onreceive.restore*: Restores the application window when a message is received. It's off by default.

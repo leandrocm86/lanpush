@@ -30,7 +30,6 @@ public class Lanpush {
 	private static boolean GUI = false;
 	
 	public static void main(String[] args) {
-		
 		Receiver receiver = null;
 		
 		try {

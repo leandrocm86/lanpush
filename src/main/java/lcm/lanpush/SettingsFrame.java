@@ -1,4 +1,4 @@
-package lanpush;
+package lcm.lanpush;
 
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;

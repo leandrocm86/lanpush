@@ -1,59 +1,97 @@
-package lanpush;
+package lcm.lanpush;
 
-import java.util.HashMap;
+import java.util.List;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
 
-import io.Leitor;
-import utils.Str;
+import lcm.java.swing.Screen;
+import lcm.java.system.logging.LogLevel;
+import lcm.java.system.logging.OLog;
 
 public class Config {
-	private static HashMap<Str, Str> map = Leitor.toMap(Files.getConfigPath(), true);
+
+	private static final String LOG_PATH_KEY = "log.file.path";
+	private static final String LOG_LEVEL_KEY = "log.level";
+	private static final String GUI_MINIMIZE_KEY = "gui.minimize_to_tray";
+	private static final String GUI_WINDOW_WIDTH_KEY = "gui.window.width";
+	private static final String GUI_WINDOW_HEIGHT_KEY = "gui.window.height";
+	private static final String GUI_FONT_SIZE_KEY = "gui.font.size";
+	private static final String GUI_MESSAGE_DATE_FORMAT_KEY = "gui.message.date_format";
+	private static final String GUI_MESSAGE_MAX_LENGTH_KEY = "gui.message.max_length";
+	private static final String GUI_ON_RECEIVE_RESTORE = "gui.on_receive.restore";
+	private static final String GUI_ON_RECEIVE_NOTIFY = "gui.on_receive.notify";
+	private static final String CONNECTION_UDP_PORT_KEY = "connection.udp_port";
+	private static final String CONNECTION_IP_KEY = "connection.ip";
 	
-	public static Str get(String key) {
-		return get(key, true);
-	}
-	
-	public static Str get(String key, boolean obrigatorio) {
-		Str value = map.get(new Str(key));
-		if (obrigatorio && value == null)
-			throw new IllegalArgumentException("Required configuration value was not found in config file: '" + key + "'");
-		return value;
-	}
-	
-	public static Str[] getAll(String key) {
-		return getAll(key, true);
-	}
-	
-	public static Str[] getAll(String key, boolean obrigatorio) {
-		Str value = get(key, obrigatorio);
-		if (value != null) {
-			Str[] values = value.corta(",");
-			for (Str v : values)
-				v.val(v.trim());
-			return values;
+	private static Preferences prefs = Preferences.userRoot().node("lcm.lanpush");
+
+	private Config() {
+		// File file = new File(prefs.absolutePath());
+		// if (!file.exists()) {
+		// 	try {
+		// 		prefs.exportNode(new FileOutputStream(file));
+		// 		OLog.info("Preferences file created.");
+		// 	} catch (IOException | BackingStoreException e) {
+		// 		OLog.error(e, "Error while trying to save preferences file at '%s'", prefs.absolutePath());
+		// 	}
+		// }
+		if (getLogLevel() == LogLevel.DEBUG) {
+			try {
+				String loadedPrefs = List.of(prefs.keys()).stream().map(key -> key + " = " + prefs.get(key, null)).collect(Collectors.joining("\n"));
+				OLog.debug("Loaded preferences:\n%s", loadedPrefs);
+			} catch (BackingStoreException e) {
+				OLog.error(e, "Could not print preferences!");
+			}
 		}
-		else return null;
 	}
-	
-	public static Integer getInt(String key) {
-		return getInt(key, true);
+
+	public static String getLogPath() {
+		return prefs.get(LOG_PATH_KEY, null);
 	}
-	
-	public static Integer getInt(String key, boolean obrigatorio) {
-		Str value = get(key, obrigatorio);
-		if (value != null)
-			return value.toInt();
-		else return null;
+
+	public static LogLevel getLogLevel() {
+		return LogLevel.valueOf(prefs.get(LOG_LEVEL_KEY, "INFO"));
 	}
-	
-	public static Boolean getBoolean(String key) {
-		return getBoolean(key, true);
+
+	public static boolean minimizeToTray() {
+		return prefs.getBoolean(GUI_MINIMIZE_KEY, false);
 	}
-	
-	public static Boolean getBoolean(String key, boolean obrigatorio) {
-		Str value = get(key, obrigatorio);
-		if (value != null)
-			return value.minusculo().em("true", "yes", "on");
-		else return null;
+
+	public static int getWindowWidth() {
+		return prefs.getInt(GUI_WINDOW_WIDTH_KEY, Screen.getScreenWidth() > 1920 ? 1500 : 1000);
+	}
+
+	public static int getWindowHeight() {
+		return prefs.getInt(GUI_WINDOW_HEIGHT_KEY, 500);
+	}
+
+	public static int getFontSize() {
+		return prefs.getInt(GUI_FONT_SIZE_KEY, 35);
+	}
+
+	public static int getUdpPort() {
+		return prefs.getInt(CONNECTION_UDP_PORT_KEY, 1050);
+	}
+
+	public static String getDateFormat() {
+		return prefs.get(GUI_MESSAGE_DATE_FORMAT_KEY, "yyyy-MM-dd HH:mm:ss");
+	}
+
+	public static int getMaxLength() {
+		return prefs.getInt(GUI_MESSAGE_MAX_LENGTH_KEY, 50);
+	}
+
+	public static boolean onReceiveRestore() {
+		return prefs.getBoolean(GUI_ON_RECEIVE_RESTORE, true);
+	}
+
+	public static boolean onReceiveNotify() {
+		return prefs.getBoolean(GUI_ON_RECEIVE_NOTIFY, true);
+	}
+
+	public static String[] getIp() {
+		return prefs.get(CONNECTION_IP_KEY, "192.168.0.255").split(",");
 	}
 	
 }

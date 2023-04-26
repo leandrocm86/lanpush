@@ -1,6 +1,7 @@
-package lanpush;
+package lcm.lanpush;
 
 import java.awt.BorderLayout;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -9,98 +10,75 @@ import java.io.IOException;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
-import io.Log;
-import swing.Fonte;
-import swing.RelativeLayout;
-import swing.SwingUtils;
-import swing.Toast;
-import system.SystemTrayFrame;
-import utils.CDI;
-import utils.Erros;
+import lanpush.connectors.Sender;
+import lcm.java.swing.CustomFont;
+import lcm.java.swing.RelativeLayout;
+import lcm.java.swing.RelativeLayout.Axis;
+import lcm.java.swing.Screen;
+import lcm.java.swing.SwingComponents;
+import lcm.java.swing.SystemTrayFrame;
+import lcm.java.swing.Toast;
+import lcm.java.system.Sys;
+import lcm.java.system.logging.OLog;
 
 public class Lanpush {
 	
 	private static JFrame mainFrame;
 	private static JPanel mainPane;
 	private static JTextField input;
-	private static boolean GUI = false;
+
+	private static String rootPath = Sys.getSystemPath();
 	
 	public static void main(String[] args) {
-		Receiver receiver = null;
-		
+		if (Config.getLogPath() == null)
+			OLog.setPrintStream(System.out);
+
 		try {
-			if (Config.getBoolean("log.output_to_console"))
-				Log.setConsole(System.out);
-			if (Config.getBoolean("log.file.enabled"))
-				Log.iniciar(Files.getLogPath());
-			if (args != null && args.length > 0) {
-				if ("-l".equals(args[0]) || "--listen".equals(args[0])) {
-					Log.i("Starting listener without GUI");
-					receiver = new Receiver();
-				}
-				else {
-					Log.i("Sending message: " + args[0]);
-					enviarMensagem(args[0]);
-				}
+			OLog.setFilePath(Config.getLogPath());
+			OLog.setMinimumLevel(Config.getLogLevel());
+			OLog.info("Starting LANPUSH");
+			final String iconPath = rootPath + "lanpush.png";
+			if (Config.minimizeToTray())
+				mainFrame = new SystemTrayFrame("LANPUSH", iconPath, true);
+			else {
+				mainFrame = new JFrame("LANPUSH");
+				mainFrame.setIconImage(Toolkit.getDefaultToolkit().getImage(iconPath));
+			}
+			mainFrame.setVisible(true);
+			mainFrame.setSize(Config.getWindowWidth(), Config.getWindowHeight());
+			mainFrame.setLayout(new BorderLayout());
+			mainPane = new JPanel(new RelativeLayout(Axis.VERTICAL));
+			mainFrame.add(mainPane);
+			
+			createInputPane();
+			createMessagePane();
+				
+			mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			Screen.centralizeWindow(mainFrame);
+			new CustomFont("Arial", Config.getFontSize()).apply(mainPane);
+			
+			if (Config.minimizeToTray()) {
+				mainFrame.setState(JFrame.ICONIFIED);
 			}
 			else {
-				Log.i("Starting LANPUSH with GUI");
-				GUI = true;
-				mainFrame = Config.getBoolean("gui.minimize_to_tray", false) ? new SystemTrayFrame("LANPUSH", Files.getIconPath(), true) : new JFrame("LANPUSH");
-				mainFrame.setVisible(true);
-				CDI.set(mainFrame);
-				mainFrame.setSize(Config.getInt("gui.window.width"), Config.getInt("gui.window.height"));
-			    mainFrame.setLayout(new BorderLayout());
-			    mainPane = new JPanel(SwingUtils.createLayout(RelativeLayout.Y_AXIS));
-				mainFrame.add(mainPane);
-				
-				createInputPane();
-				createMessagePane();
-					
-				mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-				SwingUtils.centralizarJanela(mainFrame);
-				new Fonte("Arial", Config.getInt("gui.font.size")).set(mainPane);
-				
-				if (Config.getBoolean("gui.start_minimized", false) == Boolean.TRUE) {
-					mainFrame.setState(JFrame.ICONIFIED);
-				}
-				else {
-					mainFrame.setState(JFrame.NORMAL);
-				}
-				
-				receiver = new Receiver();
+				mainFrame.setState(JFrame.NORMAL);
 			}
-			
-			if (receiver != null)
-				receiver.run();
+
+			new ReceiverHandler(mainPane).keepListening();
 		}
 		catch (Throwable t) {
-			Log.logaErro(t);
-			String message = "Error! ";
-			if (Log.gravando()) 
-				message += "See log for more info.";
-			else {
-				message += Erros.resumo(t);
-			}
-			if (args == null || args.length == 0) {
-				SwingUtils.showMessage(message);
-			}
-			else System.out.println(message);
+			OLog.error(t, "Error starting LANPUSH");
+			alertError();
 		}
-		finally {
-			if (receiver != null)
-				receiver.terminar();
-			Log.terminar();
-		}
-		System.exit(0);
 	}
 	
 	private static void createInputPane() {
-		JPanel inputPane = new JPanel(SwingUtils.createLayout(RelativeLayout.X_AXIS));
+		JPanel inputPane = new JPanel(new RelativeLayout(Axis.HORIZONTAL));
 		mainPane.add(inputPane, 1f);
 		
 		input = new JTextField();
@@ -112,7 +90,7 @@ public class Lanpush {
 			public void keyReleased(KeyEvent e) {}
 			public void keyPressed(KeyEvent e) {
 				if(e.getKeyCode() == 10)
-					enviarMensagem(input.getText());
+					sendMessage(input.getText());
 			}
 		});
 		
@@ -120,7 +98,7 @@ public class Lanpush {
 		okButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				enviarMensagem(input.getText());
+				sendMessage(input.getText());
 				input.setText("");
 			}
 		});
@@ -128,32 +106,26 @@ public class Lanpush {
 	}
 	
 	private static void createMessagePane() {
-		JPanel msgPane = new JPanel(SwingUtils.createLayout(RelativeLayout.Y_AXIS, 0, 0, true));
-		CDI.set(msgPane);
-		JScrollPane scrollPane = SwingUtils.createScrollPane(msgPane, 30, true);
+		JPanel msgPane = new JPanel(new RelativeLayout(Axis.VERTICAL, 0, 0, true));
+		JScrollPane scrollPane = SwingComponents.createScrollPane(msgPane, 20, 20);
 		mainPane.add(scrollPane, 7f);
+		new ReceiverHandler(msgPane);
 	}
 	
-	private static void enviarMensagem(String msg) {
+	private static void sendMessage(String msg) {
 		try {
-			Sender.send(msg);
-			if (input != null)
-				input.setText("");
-			Toast.makeToast(CDI.get(SystemTrayFrame.class), "MESSAGE SENT!", 2);
+			Sender.send(Config.getIp(), Config.getUdpPort(), msg);
 		} catch (IOException e) {
-			SwingUtils.showMessage(Erros.resumo(e));
-			SwingUtils.showMessage(Erros.stackTraceToStr(e, 10));
+			OLog.error(e, "Error sending message!");
+			alertError();
 		}
+		if (input != null)
+			input.setText("");
+		Toast.makeToast(mainFrame, "MESSAGE SENT!", 2);
 	}
-	
-	public static void alert(String msg) {
-		if (GUI) {
-			SwingUtils.showMessage(msg);
-		}
-		else System.out.println(msg);
-	}
-	
-	public static boolean isGUI() {
-		return GUI;
+
+	private static void alertError() {
+		var errorMessage = Config.getLogPath() != null ? "Error! Check the log file for details." : "Error! Read the output for details.";
+		JOptionPane.showMessageDialog(null, errorMessage, "Error", JOptionPane.ERROR_MESSAGE);
 	}
 }

@@ -85,7 +85,7 @@ public class Config {
 	}
 
 	public static int getFontSize() {
-		return prefs.getInt(GUI_FONT_SIZE_KEY, 35);
+		return prefs.getInt(GUI_FONT_SIZE_KEY, 25);
 	}
 
 	public static CustomFont getProportionalFont(float proportionPercentage) {

@@ -1,9 +1,9 @@
 package lcm.lanpush;
 
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.BorderLayout;
+import java.awt.GridLayout;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -11,12 +11,9 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
-import javax.swing.UIManager;
 
 import lcm.java.swing.RelativeLayout;
 import lcm.java.swing.RelativeLayout.Axis;
@@ -47,68 +44,48 @@ public class SettingsWindow {
         settingsFrame = new JFrame("Settings");
         JPanel contentPane = new JPanel();
         int scrollSize = Config.getProportionalHeight(5);
-        var scrollPane = SwingComponents.createScrollPane(contentPane, scrollSize, scrollSize);
-        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED); // TODO: Incorporate that on SwingComponents
-        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-        settingsFrame.setContentPane(scrollPane);
-        contentPane.setLayout(new RelativeLayout(Axis.VERTICAL, 0, 0, false));
+        var scrollPane = SwingComponents.createScrollPane(contentPane, scrollSize);
+        // contentPane.setLayout(new RelativeLayout(Axis.VERTICAL, 0, 0, true));
 
-        contentPane.add(createOptionPanel("UDP port", udpPortOption, 5, "The UDP port to listen on"));
-        contentPane.add(createOptionPanel("IP address", ipOption, 20, "The IP address to listen on"));
-        var filePanel = new JPanel(new RelativeLayout(Axis.HORIZONTAL));
-        filePanel.add(logPathOption, 9f);
-        filePanel.add(logPathChooserButton, 1f);
-        contentPane.add(createOptionPanel("Log file folder", filePanel, 30, "The folder to store log files"));
-        contentPane.add(createOptionPanel("Log level", logLevelOption, 5, "The log level"));
-        contentPane.add(createOptionPanel("Minimize to tray", minimizeToTrayOption, 0, "Minimize to tray"));
-        contentPane.add(createOptionPanel("Window width", windowWidthOption, 4, "Window width"));
-        contentPane.add(createOptionPanel("Window height", windowHeightOption, 4, "Window height"));
-        contentPane.add(createOptionPanel("Font size", fontSizeOption, 2, "Font size"));
-        contentPane.add(createOptionPanel("Message date format", messageDateFormatOption, 15, "Message date format"));
-        contentPane.add(createOptionPanel("Message max length", messageMaxLengthOption, 2, "Message max length"));
-        contentPane.add(createOptionPanel("Notify on message received", onReceiveNotifyOption, 0, "Notify on message received"));
-        contentPane.add(createOptionPanel("Restore on message received", onReceiveRestoreOption, 0, "Restore on message received"));
-        
+        var optionPanes = new ArrayList<JPanel>();
+        optionPanes.add(createOptionPanel("UDP port", udpPortOption, 20, "The UDP port to listen on"));
+        optionPanes.add(createOptionPanel("IP address", ipOption, 80, "The IP address to listen on"));
+        var filePanel = new JPanel(new RelativeLayout(Axis.HORIZONTAL, true));
+        filePanel.add(logPathOption, 8.5f);
+        filePanel.add(logPathChooserButton, 1.5f);
+        optionPanes.add(createOptionPanel("log file folder", filePanel, 90, "the folder to store log files"));
+        optionPanes.add(createOptionPanel("log level", logLevelOption, 40, "the log level"));
+        optionPanes.add(createOptionPanel("Minimize to tray", minimizeToTrayOption, 10, "Minimize to tray"));
+        optionPanes.add(createOptionPanel("Window width", windowWidthOption, 20, "Window width"));
+        optionPanes.add(createOptionPanel("Window height", windowHeightOption, 20, "Window height"));
+        optionPanes.add(createOptionPanel("Font size", fontSizeOption, 15, "Font size"));
+        optionPanes.add(createOptionPanel("Message date format", messageDateFormatOption, 55, "Message date format"));
+        optionPanes.add(createOptionPanel("Message max length", messageMaxLengthOption, 15, "Message max length"));
+        optionPanes.add(createOptionPanel("Notify on message received", onReceiveNotifyOption, 10, "Notify on message received"));
+        optionPanes.add(createOptionPanel("Restore on message received", onReceiveRestoreOption, 10, "Restore on message received"));
+
+        var layout = new RelativeLayout(Axis.VERTICAL, true);
+        contentPane.setLayout(layout);
+        optionPanes.forEach(pane -> contentPane.add(pane));
+
         // Set the window size and make it visible
-        settingsFrame.setSize(Config.getProportionalWidth(50), Config.getWindowHeight());
+        settingsFrame.setSize(Config.getProportionalWidth(60), Config.getWindowHeight());
         Screen.centralizeWindow(settingsFrame);
-        Config.getProportionalFont(70).apply(contentPane);
+        Config.getProportionalFont(60).apply(contentPane);
+        settingsFrame.add(scrollPane, BorderLayout.CENTER);
+        // settingsFrame.pack();
         settingsFrame.setVisible(true);
         SwingComponents.refresh(contentPane);
     }
 
-    private JPanel createOptionPanel(String labelText, JComponent component, int expectedMaxLength, String hint) {
-        // int gapSize = Config.getProportionalWidth(1.5f);
-        JPanel panel = new JPanel(new RelativeLayout(Axis.HORIZONTAL, 0, 0, true));
-
+    private JPanel createOptionPanel(String labelText, JComponent component, int maxWidthPercentage, String hint) {
         var label = new JLabel(labelText + "  ");
         label.setHorizontalAlignment(SwingConstants.RIGHT);
-
-        // TODO: encapsulate this logic in SwingComponents
         component.setToolTipText(hint);
-        if (expectedMaxLength > 0) {
-            Dimension dim = component.getPreferredSize();
-            dim.width = expectedMaxLength * component.getFontMetrics(component.getFont()).charWidth('a');
-            component.setPreferredSize(dim);
-        }
-
-        // TODO: encapsulate this logic in SwingComponents
-        var questionLabel = new JLabel(UIManager.getIcon("OptionPane.questionIcon"));
-        questionLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        questionLabel.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent e) {
-                JOptionPane.showMessageDialog(component, hint);
-            }
-        });
-
-        var valuesPanel = new JPanel(new RelativeLayout(Axis.HORIZONTAL, 0, 0, true));
-        valuesPanel.add(component, 9f);
-        valuesPanel.add(questionLabel, 1f);
-
-        panel.add(label, 1f);
-        panel.add(valuesPanel, 1f);
-        
-        return panel;
+        var questionLabel = SwingComponents.createTooltipLabel(hint);
+        questionLabel.setHorizontalAlignment(SwingConstants.LEFT);
+        float inputWidth = maxWidthPercentage/100f;
+        return RelativeLayout.fullHorizontalPane(Arrays.asList(label, component, questionLabel), 1f, inputWidth, 1-inputWidth);
     }
 
 }

@@ -1,8 +1,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>lanpush</groupId>
+  <groupId>lcm.lanpush</groupId>
   <artifactId>lanpush</artifactId>
-  <version>1.3a</version>
+  <version>1.3b</version>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
@@ -15,7 +15,7 @@
     <dependency>
   		<groupId>com.github.leandrocm86</groupId>
   		<artifactId>java-swing-utils</artifactId>
-  		<version>1.0</version>
+  		<version>1.1.1</version>
   	</dependency>
     <dependency>
   		<groupId>com.github.leandrocm86</groupId>
@@ -63,23 +63,6 @@
           </manifest>
         </archive>
         </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <version>3.5.0</version>
-        <executions>
-          <execution>
-            <?m2e execute onConfiguration,onIncremental?>
-            <goals>
-              <goal>sources</goal>
-              <goal>resolve</goal>
-            </goals>
-            <configuration>
-              <classifier>javadoc</classifier>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>

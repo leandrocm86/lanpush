@@ -6,10 +6,10 @@ import java.awt.Desktop;
 import java.awt.Frame;
 import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.net.URI;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -22,7 +22,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
-import lcm.java.swing.CustomFont;
 import lcm.java.swing.RelativeLayout;
 import lcm.java.swing.RelativeLayout.Axis;
 import lcm.java.swing.Screen;
@@ -120,11 +119,8 @@ public class MainWindow {
 	}
 
 	private JPanel createMainPane(JLabel statusLabel, JPanel inputPane, JPanel messagePane) {
-		var mainPane = new JPanel(new RelativeLayout(Axis.VERTICAL, 0, 0, true));
-		mainPane.add(statusLabel, 1f);
-		mainPane.add(inputPane, 1f);
-		mainPane.add(SwingComponents.createScrollPane(messagePane, 20, 20), 7f);
-		return mainPane;
+		var scrollingMessagePane = SwingComponents.createScrollPane(messagePane, Config.getProportionalWidth(1));
+		return RelativeLayout.fullVerticalPane(Arrays.asList(statusLabel, inputPane, scrollingMessagePane), 1, 1, 7);
 	}
 
 	private JLabel createStatusLabel() {
@@ -148,25 +144,19 @@ public class MainWindow {
     private JTextField createInputText() {
         var inputText = new JTextField();
         inputText.setFocusTraversalKeysEnabled(false);
-		inputText.addKeyListener(new KeyListener() {
-			public void keyTyped(KeyEvent e) {}
-			public void keyReleased(KeyEvent e) {}
-			public void keyPressed(KeyEvent e) {
-				if(e.getKeyCode() == 10)
-					sendMessage();
-			}
-		});
+		SwingComponents.addEnterPressedListener(inputText, () -> sendMessage());
         return inputText;
     }
 
     private JPanel createInputPane(JTextField inputText) {
 		JPanel inputPane = new JPanel(new RelativeLayout(Axis.HORIZONTAL, 0, 0, true));
-		inputPane.add(inputText, 9f);
+		inputPane.add(inputText, 8.5f);
 		
-		var sendButton = new JButton("Send");
+		var sendButton = new JButton("> SEND");
+		sendButton.setToolTipText("Send typed message to the configured IPs.");
 		sendButton.addActionListener(clickEvent -> {sendMessage();});
-			
-		inputPane.add(sendButton, 1f);
+
+		inputPane.add(sendButton, 1.5f);
 		return inputPane;
 	}
 

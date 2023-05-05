@@ -8,15 +8,10 @@ import lanpush.connectors.Sender;
 import lcm.java.system.logging.OLog;
 
 public class Lanpush {
-	
 
 	public static void main(String[] args) {
-		if (Config.getLogPath() == null)
-			OLog.setPrintStream(System.out);
-
 		try {
-			OLog.setFilePath(Config.getLogPath());
-			OLog.setMinimumLevel(Config.getLogLevel());
+			Config.init();
 			OLog.info("Starting LANPUSH");
 			ReceiverHandler.INST.startListening();
 			MainWindow.INST.restoreWindow();
@@ -40,5 +35,9 @@ public class Lanpush {
 	private static void alertError() {
 		var errorMessage = Config.getLogPath() != null ? "Error! Check the log file for details." : "Error! Read the output for details.";
 		JOptionPane.showMessageDialog(null, errorMessage, "Error", JOptionPane.ERROR_MESSAGE);
+	}
+
+	public static void showWarning(String warningMessage) {
+		JOptionPane.showMessageDialog(null, warningMessage, "Warning", JOptionPane.WARNING_MESSAGE);
 	}
 }

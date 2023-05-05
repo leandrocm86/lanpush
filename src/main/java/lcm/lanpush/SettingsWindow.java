@@ -1,7 +1,8 @@
 package lcm.lanpush;
 
-import java.awt.BorderLayout;
-import java.awt.GridLayout;
+import java.awt.Component;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -14,11 +15,17 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
 
+import lcm.java.swing.Layouts;
 import lcm.java.swing.RelativeLayout;
 import lcm.java.swing.RelativeLayout.Axis;
 import lcm.java.swing.Screen;
 import lcm.java.swing.SwingComponents;
+import lcm.java.system.logging.LogLevel;
 
 public class SettingsWindow {
     private final JFrame settingsFrame;
@@ -40,40 +47,50 @@ public class SettingsWindow {
 
     private static final String[] LOG_LEVEL_OPTIONS = new String[] {"DEBUG", "INFO", "WARN", "ERROR"};
 
-    public SettingsWindow() {
-        settingsFrame = new JFrame("Settings");
-        JPanel contentPane = new JPanel();
-        int scrollSize = Config.getProportionalHeight(5);
-        var scrollPane = SwingComponents.createScrollPane(contentPane, scrollSize);
-        // contentPane.setLayout(new RelativeLayout(Axis.VERTICAL, 0, 0, true));
+    private static final String HINT_UDP = "The UDP port used to receive and to send messages. It must be a number between 1 and 65535.";
+    private static final String HINT_IP = "The IP address(es) used to receive and to send messages. Comma is used as separator when using multiple IPs.";
+    private static final String HINT_LOG_PATH = "The directory to store the log file. If none is chosen, the log will be printed to the console and not be persisted.";
+    private static final String HINT_LOG_LEVEL = "The minimum level to be printed on log. DEBUG prints all the app info, and ERROR only prints error messages.";
+    private static final String HINT_MINIMIZE = "Whether to add the app to the system's tray when it gets minimized.";
+    private static final String HINT_WINDOW_WIDTH = "The width of the main window (in pixels).";
+    private static final String HINT_WINDOW_HEIGHT = "The height of the main window (in pixels).";
+    private static final String HINT_FONT_SIZE = "The font size to be used in the app's texts.";
+    private static final String HINT_MESSAGE_DATE_FORMAT = "The date format of the messages. It follows Java's DateTimeFormatter formats.";
+    private static final String HINT_MESSAGE_MAX_LENGTH = "The max length of the messages to be displayed in the main window. They get truncated when exceeding this limit.";
+    private static final String HINT_ON_RECEIVE_NOTIFY = "Whether to display a notification when a message is received.";
+    private static final String HINT_ON_RECEIVE_RESTORE = "Whether to restore the main window when a message is received and the app is in background.";
+    
 
-        var optionPanes = new ArrayList<JPanel>();
-        optionPanes.add(createOptionPanel("UDP port", udpPortOption, 20, "The UDP port to listen on"));
-        optionPanes.add(createOptionPanel("IP address", ipOption, 80, "The IP address to listen on"));
-        var filePanel = new JPanel(new RelativeLayout(Axis.HORIZONTAL, true));
+    public SettingsWindow() {
+        var optionPanes = new ArrayList<Component>();
+        optionPanes.add(createOptionPanel("UDP port", udpPortOption, 20, HINT_UDP));
+        optionPanes.add(createOptionPanel("IP address", ipOption, 80, HINT_IP));
+        var filePanel = new JPanel(new RelativeLayout(Axis.HORIZONTAL));
         filePanel.add(logPathOption, 8.5f);
         filePanel.add(logPathChooserButton, 1.5f);
-        optionPanes.add(createOptionPanel("log file folder", filePanel, 90, "the folder to store log files"));
-        optionPanes.add(createOptionPanel("log level", logLevelOption, 40, "the log level"));
-        optionPanes.add(createOptionPanel("Minimize to tray", minimizeToTrayOption, 10, "Minimize to tray"));
-        optionPanes.add(createOptionPanel("Window width", windowWidthOption, 20, "Window width"));
-        optionPanes.add(createOptionPanel("Window height", windowHeightOption, 20, "Window height"));
-        optionPanes.add(createOptionPanel("Font size", fontSizeOption, 15, "Font size"));
-        optionPanes.add(createOptionPanel("Message date format", messageDateFormatOption, 55, "Message date format"));
-        optionPanes.add(createOptionPanel("Message max length", messageMaxLengthOption, 15, "Message max length"));
-        optionPanes.add(createOptionPanel("Notify on message received", onReceiveNotifyOption, 10, "Notify on message received"));
-        optionPanes.add(createOptionPanel("Restore on message received", onReceiveRestoreOption, 10, "Restore on message received"));
+        optionPanes.add(createOptionPanel("log file folder", filePanel, 90, HINT_LOG_PATH));
+        optionPanes.add(createOptionPanel("log level", logLevelOption, 40, HINT_LOG_LEVEL));
+        optionPanes.add(createOptionPanel("Minimize to tray", minimizeToTrayOption, 10, HINT_MINIMIZE));
+        optionPanes.add(createOptionPanel("Window width", windowWidthOption, 20, HINT_WINDOW_WIDTH));
+        optionPanes.add(createOptionPanel("Window height", windowHeightOption, 20, HINT_WINDOW_HEIGHT));
+        optionPanes.add(createOptionPanel("Font size", fontSizeOption, 15, HINT_FONT_SIZE));
+        optionPanes.add(createOptionPanel("Message date format", messageDateFormatOption, 55, HINT_MESSAGE_DATE_FORMAT));
+        optionPanes.add(createOptionPanel("Message max length", messageMaxLengthOption, 15, HINT_MESSAGE_MAX_LENGTH));
+        optionPanes.add(createOptionPanel("Notify on message received", onReceiveNotifyOption, 10, HINT_ON_RECEIVE_NOTIFY));
+        optionPanes.add(createOptionPanel("Restore on message received", onReceiveRestoreOption, 10, HINT_ON_RECEIVE_RESTORE));
 
-        var layout = new RelativeLayout(Axis.VERTICAL, true);
-        contentPane.setLayout(layout);
-        optionPanes.forEach(pane -> contentPane.add(pane));
-
-        // Set the window size and make it visible
+        initializeValues();
+        restrictInputs();
+        setUpdateEvents();
+        
+        settingsFrame = new JFrame("Settings");
         settingsFrame.setSize(Config.getProportionalWidth(60), Config.getWindowHeight());
+        var contentPane = Layouts.fullVerticalPane(optionPanes); // TODO: Trocar List<Component> por List<? extends Component> no swing-utils.
+        int scrollSize = Config.getProportionalHeight(5);
+        var scrollPane = SwingComponents.createScrollPane(contentPane, scrollSize);
+        settingsFrame.setContentPane(scrollPane);
         Screen.centralizeWindow(settingsFrame);
         Config.getProportionalFont(60).apply(contentPane);
-        settingsFrame.add(scrollPane, BorderLayout.CENTER);
-        // settingsFrame.pack();
         settingsFrame.setVisible(true);
         SwingComponents.refresh(contentPane);
     }
@@ -85,7 +102,72 @@ public class SettingsWindow {
         var questionLabel = SwingComponents.createTooltipLabel(hint);
         questionLabel.setHorizontalAlignment(SwingConstants.LEFT);
         float inputWidth = maxWidthPercentage/100f;
-        return RelativeLayout.fullHorizontalPane(Arrays.asList(label, component, questionLabel), 1f, inputWidth, 1-inputWidth);
+        return Layouts.horizontalPane(Arrays.asList(label, component, questionLabel), 1f, inputWidth, 1-inputWidth);
+    }
+
+    private void initializeValues() {
+        udpPortOption.setText(String.valueOf(Config.getUdpPort()));
+        ipOption.setText(String.join(",", Config.getIp()));
+        logPathOption.setText(Config.getLogPath());
+        logLevelOption.setSelectedItem(Config.getLogLevel().name());
+        minimizeToTrayOption.setSelected(Config.minimizeToTray());
+        windowWidthOption.setText(String.valueOf(Config.getWindowWidth()));
+        windowHeightOption.setText(String.valueOf(Config.getWindowHeight()));
+        fontSizeOption.setText(String.valueOf(Config.getFontSize()));
+        messageDateFormatOption.setText(Config.getDateFormat());
+        messageMaxLengthOption.setText(String.valueOf(Config.getMaxLength()));
+        onReceiveNotifyOption.setSelected(Config.onReceiveNotify());
+        onReceiveRestoreOption.setSelected(Config.onReceiveRestore());
+    }
+
+    private void setUpdateEvents() {
+        udpPortOption.addFocusListener(new ConfigChanged(() -> Config.setUdpPort(udpPortOption.getText())));
+        ipOption.addFocusListener(new ConfigChanged(() -> Config.setIp(ipOption.getText())));
+        logPathOption.addFocusListener(new ConfigChanged(() -> Config.setLogPath(logPathOption.getText())));
+        logLevelOption.addFocusListener(new ConfigChanged(() -> Config.setLogLevel(LogLevel.valueOf(logLevelOption.getSelectedItem().toString()))));
+        minimizeToTrayOption.addFocusListener(new ConfigChanged(() -> Config.setMinimizeToTray(minimizeToTrayOption.isSelected())));
+        windowWidthOption.addFocusListener(new ConfigChanged(() -> Config.setWindowWidth(windowWidthOption.getText())));
+        windowHeightOption.addFocusListener(new ConfigChanged(() -> Config.setWindowHeight(windowHeightOption.getText())));
+        fontSizeOption.addFocusListener(new ConfigChanged(() -> Config.setFontSize(fontSizeOption.getText())));
+        messageDateFormatOption.addFocusListener(new ConfigChanged(() -> Config.setDateFormat(messageDateFormatOption.getText())));
+        messageMaxLengthOption.addFocusListener(new ConfigChanged(() -> Config.setMaxLength(messageMaxLengthOption.getText())));
+        onReceiveNotifyOption.addFocusListener(new ConfigChanged(() -> Config.setOnReceiveNotify(onReceiveNotifyOption.isSelected())));
+        onReceiveRestoreOption.addFocusListener(new ConfigChanged(() -> Config.setOnReceiveRestore(onReceiveRestoreOption.isSelected())));
+    }
+
+    private class ConfigChanged implements FocusListener {
+        Runnable updateAction;
+        ConfigChanged(Runnable updateAction) {
+            this.updateAction = updateAction;
+        }
+        @Override
+        public void focusLost(FocusEvent arg0) {
+            updateAction.run();
+        }
+        @Override
+        public void focusGained(FocusEvent arg0) {}
+    }
+
+    private void restrictInputs() {
+        final String onlyNumbersRegex = "^[0-9]+$";
+        final String onlyNumbersDotsAndCommasRegex = "^[0-9,.]+$";
+        restrictInput(udpPortOption, onlyNumbersRegex);
+        restrictInput(fontSizeOption, onlyNumbersRegex);
+        restrictInput(messageMaxLengthOption, onlyNumbersRegex);
+        restrictInput(windowWidthOption, onlyNumbersRegex);
+        restrictInput(windowHeightOption, onlyNumbersRegex);
+        restrictInput(ipOption, onlyNumbersDotsAndCommasRegex);
+    }
+
+    private void restrictInput(JTextField input, String regex) { // TODO: Encapsulate this logic in SwingComponents
+        ((AbstractDocument) input.getDocument()).setDocumentFilter(new DocumentFilter() {
+            @Override
+            public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
+                if (text.matches(regex)) {
+                    super.replace(fb, offset, length, text, attrs);
+                }
+            }
+        });
     }
 
 }

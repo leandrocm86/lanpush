@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>lcm.lanpush</groupId>
   <artifactId>lanpush</artifactId>
-  <version>1.3b</version>
+  <version>1.3c</version>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
@@ -15,7 +15,7 @@
     <dependency>
   		<groupId>com.github.leandrocm86</groupId>
   		<artifactId>java-swing-utils</artifactId>
-  		<version>1.1.1</version>
+  		<version>1.1.2</version>
   	</dependency>
     <dependency>
   		<groupId>com.github.leandrocm86</groupId>

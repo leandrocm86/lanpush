@@ -9,7 +9,6 @@ import java.awt.datatransfer.StringSelection;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -22,6 +21,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
+import lcm.java.swing.Layouts;
 import lcm.java.swing.RelativeLayout;
 import lcm.java.swing.RelativeLayout.Axis;
 import lcm.java.swing.Screen;
@@ -39,14 +39,12 @@ public class MainWindow {
 	private final JFrame mainFrame;
     private final JPanel mainPane;
     private final JLabel statusLabel;
-    // public final JPanel topBar;
     private final JPanel inputPane;
     private final JTextField inputText;
     private final JPanel messagePane;
-    
+
     private MainWindow() {
         this.statusLabel = createStatusLabel();
-        // this.topBar = createTopBar(this.statusLabel);
         this.inputText = createInputText();
         this.inputPane = createInputPane(this.inputText);
         this.messagePane = new JPanel(new RelativeLayout(Axis.VERTICAL, 0, 0, true));
@@ -72,7 +70,7 @@ public class MainWindow {
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		Screen.centralizeWindow(mainFrame);
 		Config.getDefaultFont().apply(mainPane);
-		mainFrame.setState(Config.minimizeToTray() ? JFrame.ICONIFIED : JFrame.NORMAL);
+		mainFrame.setState(Config.startMinimized() ? JFrame.ICONIFIED : JFrame.NORMAL);
 
 		return mainFrame;
 	}
@@ -120,7 +118,7 @@ public class MainWindow {
 
 	private JPanel createMainPane(JLabel statusLabel, JPanel inputPane, JPanel messagePane) {
 		var scrollingMessagePane = SwingComponents.createScrollPane(messagePane, Config.getProportionalWidth(1));
-		return RelativeLayout.fullVerticalPane(Arrays.asList(statusLabel, inputPane, scrollingMessagePane), 1, 1, 7);
+		return Layouts.fullVerticalPane(Arrays.asList(statusLabel, inputPane, scrollingMessagePane), 1, 1, 7);
 	}
 
 	private JLabel createStatusLabel() {
@@ -130,16 +128,6 @@ public class MainWindow {
 		statusLabel.setOpaque(true);
 		return statusLabel;
 	}
-
-    // private JPanel createTopBar(JLabel statusLabel) {
-	// 	JPanel topBar = new JPanel(new RelativeLayout(Axis.HORIZONTAL, 0, 0, true));
-	// 	var optionsButton = new JButton("Options");
-	// 	optionsButton.addActionListener(actionEvent -> {System.exit(0);});
-	// 	topBar.add(statusLabel, 14f);
-	// 	topBar.add(optionsButton, 1f);
-	// 	new CustomFont("Arial", (int) Math.round(Config.getFontSize() * 0.5)).apply(optionsButton);
-	// 	return topBar;
-	// }
 
     private JTextField createInputText() {
         var inputText = new JTextField();
@@ -222,6 +210,18 @@ public class MainWindow {
     	mainFrame.toFront();
     	SwingComponents.refresh(mainFrame);
     }
+
+	public void updateSize() {
+		mainFrame.setSize(Config.getWindowWidth(), Config.getWindowHeight());
+		// SwingComponents.refresh(mainFrame);
+	}
+
+	public void updateFont() {
+		// TODO: METODO EM SwingComponents QUE RETORNA TODOS OS FILHOS QUE ATENDAM UMA CONDICAO
+		// DAÍ, RECUPERAR OS BOTOES E REAPLICAR A FONTE COM 70%
+		Config.getDefaultFont().apply(true, mainFrame);
+		// SwingComponents.refresh(mainFrame);
+	}
 
 	public void updateStatus(boolean listening, String text) {
 		statusLabel.setBackground(listening ? Color.GREEN : Color.RED);

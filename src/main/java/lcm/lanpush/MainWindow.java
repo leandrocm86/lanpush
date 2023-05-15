@@ -4,15 +4,13 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.Frame;
+import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 
-import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -24,6 +22,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
+import lcm.java.swing.CustomFont;
 import lcm.java.swing.Layouts;
 import lcm.java.swing.RelativeLayout;
 import lcm.java.swing.RelativeLayout.Axis;
@@ -57,34 +56,15 @@ public class MainWindow {
 
 	private JFrame createMainFrame(JPanel mainPane) {
 		JFrame mainFrame = null;
-		// var root = Lanpush.class.getResource("/");
-		// String path = root != null ? root.getPath() : "?";
-		// OLog.info("Path /: %s", path);
-		// OLog.info(Sys.read("ls -l " + path));
 
-		// root = Lanpush.class.getResource(".");
-		// String path2 = root != null ? root.getPath() : "?";
-		// OLog.info("Path .: %s", path2);
-		// OLog.info(Sys.read("ls -l " + path2));
-
-		// TODO: Aceitar Image no construtor e unificar setTrayImage com updateTrayImage
-		var imageStream = Lanpush.class.getResourceAsStream("/lanpush.png");
-		BufferedImage icon = null;
-		try {
-			icon = ImageIO.read(imageStream);
-		} catch (IOException e) {
-			OLog.error("Could not read lanpush.png");
-			e.printStackTrace();
-		}
+		Image appIcon = SwingComponents.getImageFromResource("/lanpush.png");
 		if (Config.minimizeToTray()) {
-			mainFrame = new SystemTrayFrame("LANPUSH");
-			if (icon != null)
-				((SystemTrayFrame) mainFrame).setTrayImage(icon, "LANPUSH");
+			mainFrame = new SystemTrayFrame("LANPUSH", appIcon);
 		}
 		else {
 			mainFrame = new JFrame("LANPUSH");
 		}
-		mainFrame.setIconImage(icon);
+		mainFrame.setIconImage(appIcon);
 		mainFrame.setSize(Config.getWindowWidth(), Config.getWindowHeight());
 		mainFrame.setLayout(new BorderLayout());
 		
@@ -241,8 +221,8 @@ public class MainWindow {
 	}
 
 	public void updateFont() {
-		// TODO: METODO EM SwingComponents QUE RETORNA TODOS OS FILHOS QUE ATENDAM UMA CONDICAO
-		// DAÍ, RECUPERAR OS BOTOES E REAPLICAR A FONTE COM 70%
+		CustomFont buttonsFont = Config.getProportionalFont(70);
+		SwingComponents.filterChildren(mainFrame, component -> component instanceof JButton).stream().forEach(button -> buttonsFont.apply(button));
 		Config.getDefaultFont().apply(true, mainFrame);
 		// SwingComponents.refresh(mainFrame);
 	}

@@ -1,6 +1,5 @@
 package lcm.lanpush;
 
-import java.awt.Component;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.util.ArrayList;
@@ -62,7 +61,7 @@ public class SettingsWindow {
     
 
     public SettingsWindow() {
-        var optionPanes = new ArrayList<Component>();
+        var optionPanes = new ArrayList<JPanel>();
         optionPanes.add(createOptionPanel("UDP port", udpPortOption, 20, HINT_UDP));
         optionPanes.add(createOptionPanel("IP address", ipOption, 80, HINT_IP));
         var filePanel = new JPanel(new RelativeLayout(Axis.HORIZONTAL));
@@ -85,7 +84,7 @@ public class SettingsWindow {
         
         settingsFrame = new JFrame("Settings");
         settingsFrame.setSize(Config.getProportionalWidth(60), Config.getWindowHeight());
-        var contentPane = Layouts.fullVerticalPane(optionPanes); // TODO: Trocar List<Component> por List<? extends Component> no swing-utils.
+        var contentPane = Layouts.fullVerticalPane(optionPanes);
         int scrollSize = Config.getProportionalHeight(5);
         var scrollPane = SwingComponents.createScrollPane(contentPane, scrollSize);
         settingsFrame.setContentPane(scrollPane);
@@ -151,7 +150,6 @@ public class SettingsWindow {
     private void restrictInputs() {
         final String onlyNumbersRegex = "^[0-9]+$";
         final String onlyNumbersDotsAndCommasRegex = "^[0-9,.]+$";
-        restrictInput(udpPortOption, onlyNumbersRegex);
         restrictInput(fontSizeOption, onlyNumbersRegex);
         restrictInput(messageMaxLengthOption, onlyNumbersRegex);
         restrictInput(windowWidthOption, onlyNumbersRegex);
@@ -159,7 +157,7 @@ public class SettingsWindow {
         restrictInput(ipOption, onlyNumbersDotsAndCommasRegex);
     }
 
-    private void restrictInput(JTextField input, String regex) { // TODO: Encapsulate this logic in SwingComponents
+    private void restrictInput(JTextField input, String regex) { // TODO: static in SwingComponents
         ((AbstractDocument) input.getDocument()).setDocumentFilter(new DocumentFilter() {
             @Override
             public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {

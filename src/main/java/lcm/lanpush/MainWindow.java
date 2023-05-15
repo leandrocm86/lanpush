@@ -6,10 +6,13 @@ import java.awt.Desktop;
 import java.awt.Frame;
 import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 
+import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -54,13 +57,34 @@ public class MainWindow {
 
 	private JFrame createMainFrame(JPanel mainPane) {
 		JFrame mainFrame = null;
-		final String iconPath = Sys.getSystemPath() + "lanpush.png";
-		if (Config.minimizeToTray())
-			mainFrame = new SystemTrayFrame("LANPUSH", iconPath, true);
+		// var root = Lanpush.class.getResource("/");
+		// String path = root != null ? root.getPath() : "?";
+		// OLog.info("Path /: %s", path);
+		// OLog.info(Sys.read("ls -l " + path));
+
+		// root = Lanpush.class.getResource(".");
+		// String path2 = root != null ? root.getPath() : "?";
+		// OLog.info("Path .: %s", path2);
+		// OLog.info(Sys.read("ls -l " + path2));
+
+		// TODO: Aceitar Image no construtor e unificar setTrayImage com updateTrayImage
+		var imageStream = Lanpush.class.getResourceAsStream("/lanpush.png");
+		BufferedImage icon = null;
+		try {
+			icon = ImageIO.read(imageStream);
+		} catch (IOException e) {
+			OLog.error("Could not read lanpush.png");
+			e.printStackTrace();
+		}
+		if (Config.minimizeToTray()) {
+			mainFrame = new SystemTrayFrame("LANPUSH");
+			if (icon != null)
+				((SystemTrayFrame) mainFrame).setTrayImage(icon, "LANPUSH");
+		}
 		else {
 			mainFrame = new JFrame("LANPUSH");
-			mainFrame.setIconImage(Toolkit.getDefaultToolkit().getImage(iconPath));
 		}
+		mainFrame.setIconImage(icon);
 		mainFrame.setSize(Config.getWindowWidth(), Config.getWindowHeight());
 		mainFrame.setLayout(new BorderLayout());
 		

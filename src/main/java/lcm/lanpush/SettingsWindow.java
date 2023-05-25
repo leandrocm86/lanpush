@@ -1,7 +1,10 @@
 package lcm.lanpush;
 
+import java.awt.FlowLayout;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -9,11 +12,14 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
@@ -25,6 +31,7 @@ import lcm.java.swing.RelativeLayout.Axis;
 import lcm.java.swing.Screen;
 import lcm.java.swing.SwingComponents;
 import lcm.java.system.logging.LogLevel;
+import lcm.java.system.logging.OLog;
 
 public class SettingsWindow {
     private final JFrame settingsFrame;
@@ -33,7 +40,7 @@ public class SettingsWindow {
     private final JTextField ipOption = new JTextField();
     private final JTextField logPathOption = new JTextField();
     private final JButton logPathChooserButton = new JButton("...");
-    // private final JFileChooser logPathChooser = new JFileChooser();
+    private final JFileChooser fileChooser = new JFileChooser();
     private final JComboBox<String> logLevelOption = new JComboBox<>(LOG_LEVEL_OPTIONS);
     private final JCheckBox minimizeToTrayOption = new JCheckBox();
     private final JTextField windowWidthOption = new JTextField();
@@ -48,7 +55,7 @@ public class SettingsWindow {
 
     private static final String HINT_UDP = "The UDP port used to receive and to send messages. It must be a number between 1 and 65535.";
     private static final String HINT_IP = "The IP address(es) used to receive and to send messages. Comma is used as separator when using multiple IPs.";
-    private static final String HINT_LOG_PATH = "The directory to store the log file. If none is chosen, the log will be printed to the console and not be persisted.";
+    private static final String HINT_LOG_PATH = "Path to the log file. If blank, the log will be printed to the console and not be persisted.";
     private static final String HINT_LOG_LEVEL = "The minimum level to be printed on log. DEBUG prints all the app info, and ERROR only prints error messages.";
     private static final String HINT_MINIMIZE = "Whether to add the app to the system's tray when it gets minimized.";
     private static final String HINT_WINDOW_WIDTH = "The width of the main window (in pixels).";
@@ -64,10 +71,7 @@ public class SettingsWindow {
         var optionPanes = new ArrayList<JPanel>();
         optionPanes.add(createOptionPanel("UDP port", udpPortOption, 20, HINT_UDP));
         optionPanes.add(createOptionPanel("IP address", ipOption, 80, HINT_IP));
-        var filePanel = new JPanel(new RelativeLayout(Axis.HORIZONTAL));
-        filePanel.add(logPathOption, 8.5f);
-        filePanel.add(logPathChooserButton, 1.5f);
-        optionPanes.add(createOptionPanel("log file folder", filePanel, 90, HINT_LOG_PATH));
+        optionPanes.add(createOptionPanel("log file folder", createLogFilePanel(), 90, HINT_LOG_PATH));
         optionPanes.add(createOptionPanel("log level", logLevelOption, 40, HINT_LOG_LEVEL));
         optionPanes.add(createOptionPanel("Minimize to tray", minimizeToTrayOption, 10, HINT_MINIMIZE));
         optionPanes.add(createOptionPanel("Window width", windowWidthOption, 20, HINT_WINDOW_WIDTH));
@@ -94,14 +98,68 @@ public class SettingsWindow {
         SwingComponents.refresh(contentPane);
     }
 
+    private JPanel createLogFilePanel() {
+        fileChooser.setFileFilter(new FileFilter() {
+            @Override
+            public boolean accept(File f) {
+                return f.isDirectory() || f.getName().toLowerCase().endsWith(".log") || f.getName().toLowerCase().endsWith(".txt");
+            }
+            @Override
+            public String getDescription() {
+                return "Text/log files (*.log, *.txt)";
+            }
+        });
+        Config.getProportionalFont(60).apply(true, fileChooser);
+        logPathChooserButton.addActionListener(e -> {
+            fileChooser.setSelectedFile(new File(logPathOption.getText().isBlank() ? "lanpush.log" : logPathOption.getText()));
+            if (fileChooser.showOpenDialog(MainWindow.INST.mainFrame) == JFileChooser.APPROVE_OPTION) {
+                var selectedFile = fileChooser.getSelectedFile();
+                if (selectedFile != null)
+                    logPathOption.setText(selectedFile.getAbsolutePath());
+            }
+            settingsFrame.toFront();
+        });
+        var filePanel = new JPanel(new RelativeLayout(Axis.HORIZONTAL));
+        filePanel.add(logPathOption, 8.5f);
+        filePanel.add(logPathChooserButton, 1.5f);
+        return filePanel;
+    }
+
+    private boolean canWriteOnFile(File file) {
+       if (!file.exists()) {
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+               return false;
+            }
+        }
+        return file.canWrite();
+    }
+
+    private void logPathChanged() {
+        if (logPathOption.getText().isBlank()) {
+            Config.setLogPath(null);
+            return;
+        }
+        var selectedFile = new File(logPathOption.getText());
+        if (this.canWriteOnFile(selectedFile)) {
+            Config.setLogPath(logPathOption.getText());
+            OLog.info("Log path selected: %s", selectedFile.getAbsolutePath());
+        }
+        else
+            JOptionPane.showMessageDialog(null, "LANPUSH cannot write to the selected path. Check its permissions.", "Error", JOptionPane.ERROR_MESSAGE);
+    }
+
     private JPanel createOptionPanel(String labelText, JComponent component, int maxWidthPercentage, String hint) {
         var label = new JLabel(labelText + "  ");
         label.setHorizontalAlignment(SwingConstants.RIGHT);
         component.setToolTipText(hint);
+        var hintPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         var questionLabel = SwingComponents.createTooltipLabel(hint);
+        hintPanel.add(questionLabel);
         questionLabel.setHorizontalAlignment(SwingConstants.LEFT);
         float inputWidth = maxWidthPercentage/100f;
-        return Layouts.horizontalPane(Arrays.asList(label, component, questionLabel), 1f, inputWidth, 1-inputWidth);
+        return Layouts.horizontalPane(Arrays.asList(label, component, hintPanel), 1f, inputWidth, 1-inputWidth);
     }
 
     private void initializeValues() {
@@ -122,7 +180,8 @@ public class SettingsWindow {
     private void setUpdateEvents() {
         udpPortOption.addFocusListener(new ConfigChanged(() -> Config.setUdpPort(udpPortOption.getText())));
         ipOption.addFocusListener(new ConfigChanged(() -> Config.setIp(ipOption.getText())));
-        logPathOption.addFocusListener(new ConfigChanged(() -> Config.setLogPath(logPathOption.getText())));
+        logPathOption.addFocusListener(new ConfigChanged(() -> {logPathChanged();}));
+        logPathChooserButton.addFocusListener(new ConfigChanged(() -> {logPathChanged();}));
         logLevelOption.addFocusListener(new ConfigChanged(() -> Config.setLogLevel(LogLevel.valueOf(logLevelOption.getSelectedItem().toString()))));
         minimizeToTrayOption.addFocusListener(new ConfigChanged(() -> Config.setMinimizeToTray(minimizeToTrayOption.isSelected())));
         windowWidthOption.addFocusListener(new ConfigChanged(() -> Config.setWindowWidth(windowWidthOption.getText())));

@@ -5,8 +5,6 @@ import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.Frame;
 import java.awt.Image;
-import java.awt.Toolkit;
-import java.awt.datatransfer.StringSelection;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -38,12 +36,12 @@ public class MainWindow {
 
     public static final MainWindow INST = new MainWindow();
 
-	private final JFrame mainFrame;
-    private final JPanel mainPane;
-    private final JLabel statusLabel;
-    private final JPanel inputPane;
-    private final JTextField inputText;
-    private final JPanel messagePane;
+	final JFrame mainFrame;
+    final JPanel mainPane;
+    final JLabel statusLabel;
+    final JPanel inputPane;
+    final JTextField inputText;
+    final JPanel messagePane;
 
     private MainWindow() {
         this.statusLabel = createStatusLabel();
@@ -162,7 +160,7 @@ public class MainWindow {
     	JPanel newLine = new JPanel(new RelativeLayout(Axis.HORIZONTAL, 10, 0, true));
     	JButton copyBtn = new JButton("copy");
     	copyBtn.addActionListener(actionEvent -> {
-			Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(msg), null); // TODO: Colocar Clipboard no Sys.
+			Sys.setClipboard(msg);
 			Toast.makeToast((JFrame) messagePane.getParent(), "Copied!", 2);
 		});
     	JButton browseBtn = new JButton("browse");

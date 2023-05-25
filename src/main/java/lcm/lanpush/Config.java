@@ -33,9 +33,9 @@ public class Config {
 
 	public static void init() {
 		OLog.setMinimumLevel(getLogLevel());
-		if (Config.getLogPath() != null && !Config.getLogPath().isBlank()) // TODO: Validate filepath in OLog.
+		if (Config.getLogPath() != null && !Config.getLogPath().isBlank())
 			OLog.setFilePath(Config.getLogPath());
-		else
+		// else // TODO: DESCOMENTAR QUANDO ESTIVER PRONTO
 			OLog.setPrintStream(System.out);
 
 		if (getLogLevel() == LogLevel.DEBUG) {
@@ -66,12 +66,14 @@ public class Config {
 	}
 
 	public static String getLogPath() {
-		return prefs.get(LOG_PATH_KEY, null);
+		return prefs.get(LOG_PATH_KEY, "");
 	}
 
 	public static void setLogPath(String path) {
-		if (changeString(LOG_PATH_KEY, getLogPath(), path))
-			OLog.setFilePath(path); // TODO: ALÈM DE VALIDAR SE O PATH EXISTE, VERIFICAR SE É POSSIVEL ESCREVER
+		if (changeString(LOG_PATH_KEY, getLogPath(), path)) {
+			OLog.setFilePath(path != null && path.isBlank() ? null : path);
+			OLog.info("OLog file setted: %s", path);
+		}
 	}
 
 	public static LogLevel getLogLevel() {
@@ -196,7 +198,11 @@ public class Config {
 	}
 
 	private static boolean changeString(String key, String oldValue, String newValue) {
-		if (!newValue.equals(oldValue)) {
+		if (oldValue == null)
+			oldValue = "";
+		if (newValue == null)
+			newValue = "";
+		if (!oldValue.trim().equals(newValue.trim())) {
 			OLog.info("Changing '%s' from '%s' to '%s'", key, oldValue, newValue);
 			prefs.put(key, newValue);
 			return true;

@@ -33,7 +33,7 @@ public class Lanpush {
 	}
 
 	private static void alertError() {
-		var errorMessage = Config.getLogPath() != null ? "Error! Check the log file for details." : "Error! Read the output for details.";
+		var errorMessage = Config.getLogPath().isBlank() ? "Error! Read the output for details." : "Error! Check the log file for details.";
 		JOptionPane.showMessageDialog(null, errorMessage, "Error", JOptionPane.ERROR_MESSAGE);
 	}
 

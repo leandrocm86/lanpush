@@ -1,6 +1,7 @@
 package lcm.lanpush;
 
 import java.awt.FlowLayout;
+import java.awt.Image;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.File;
@@ -8,6 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -19,6 +21,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.UIManager;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
@@ -34,6 +37,9 @@ import lcm.java.system.logging.LogLevel;
 import lcm.java.system.logging.OLog;
 
 public class SettingsWindow {
+
+    private static SettingsWindow instance;
+
     private final JFrame settingsFrame;
 
     private final JTextField udpPortOption = new JTextField();
@@ -67,7 +73,7 @@ public class SettingsWindow {
     private static final String HINT_ON_RECEIVE_RESTORE = "Whether to restore the main window when a message is received and the app is in background.";
     
 
-    public SettingsWindow() {
+    private SettingsWindow() {
         var optionPanes = new ArrayList<JPanel>();
         optionPanes.add(createOptionPanel("UDP port", udpPortOption, 20, HINT_UDP));
         optionPanes.add(createOptionPanel("IP address", ipOption, 80, HINT_IP));
@@ -92,10 +98,21 @@ public class SettingsWindow {
         int scrollSize = Config.getProportionalHeight(5);
         var scrollPane = SwingComponents.createScrollPane(contentPane, scrollSize);
         settingsFrame.setContentPane(scrollPane);
-        Screen.centralizeWindow(settingsFrame);
         Config.getProportionalFont(60).apply(contentPane);
+        Screen.centralizeWindow(settingsFrame);
         settingsFrame.setVisible(true);
         SwingComponents.refresh(contentPane);
+    }
+
+    public static SettingsWindow getInstance() {
+        if (instance == null)
+            instance = new SettingsWindow();
+        return instance;
+    }
+
+    public static void updateFont() {
+        instance.settingsFrame.dispose();
+        instance = new SettingsWindow();
     }
 
     private JPanel createLogFilePanel() {
@@ -155,7 +172,12 @@ public class SettingsWindow {
         label.setHorizontalAlignment(SwingConstants.RIGHT);
         component.setToolTipText(hint);
         var hintPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        var questionLabel = SwingComponents.createTooltipLabel(hint);
+        // var questionLabel = SwingComponents.createTooltipLabel(hint); // TODO: parametrizar tamanho do tooltip
+        var imageIcon = ((ImageIcon)UIManager.getIcon("OptionPane.questionIcon")).getImage();
+        imageIcon = imageIcon.getScaledInstance(Config.getFontSize(), Config.getFontSize(), Image.SCALE_SMOOTH);
+        var questionLabel = new JLabel(new ImageIcon(imageIcon));
+
+
         hintPanel.add(questionLabel);
         questionLabel.setHorizontalAlignment(SwingConstants.LEFT);
         float inputWidth = maxWidthPercentage/100f;

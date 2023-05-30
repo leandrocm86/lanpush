@@ -96,7 +96,7 @@ public class MainWindow {
 		});
 		settingsItem.addActionListener(actionEvent ->  {
 			OLog.info("Opening settings...");
-			new SettingsWindow();
+			SettingsWindow.getInstance();
 		});
 		aboutItem.addActionListener(actionEvent ->  {
 			OLog.info("Opening about...");
@@ -223,6 +223,7 @@ public class MainWindow {
 		SwingComponents.filterChildren(mainFrame, component -> component instanceof JButton).stream().forEach(button -> buttonsFont.apply(button));
 		Config.getDefaultFont().apply(true, mainFrame);
 		// SwingComponents.refresh(mainFrame);
+		// Uppdate menu
 	}
 
 	public void updateStatus(boolean listening, String text) {

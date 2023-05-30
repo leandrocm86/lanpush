@@ -133,8 +133,10 @@ public class Config {
 	}
 
 	public static void setFontSize(String size) {
-		if (changeInt(GUI_FONT_SIZE_KEY, getFontSize(), size))
+		if (changeInt(GUI_FONT_SIZE_KEY, getFontSize(), size)) {
+			SettingsWindow.updateFont();
 			MainWindow.INST.updateFont();
+		}
 	}
 
 	public static CustomFont getProportionalFont(float proportionPercentage) {

@@ -55,7 +55,7 @@ public class MainWindow {
 	private JFrame createMainFrame(JPanel mainPane) {
 		JFrame mainFrame = null;
 
-		Image appIcon = SwingComponents.getImageFromResource("/lanpush.png");
+		Image appIcon = SwingComponents.getImageFromResource("/lanpush.png"); // TODO: Move this from SwingComponents to Images
 		if (Config.minimizeToTray()) {
 			mainFrame = new SystemTrayFrame("LANPUSH", appIcon);
 		}
@@ -100,6 +100,7 @@ public class MainWindow {
 		});
 		aboutItem.addActionListener(actionEvent ->  {
 			OLog.info("Opening about...");
+			new AboutWindow();
 		});
 		exitItem.addActionListener(actionEvent ->  {
 			OLog.info("Exiting...");

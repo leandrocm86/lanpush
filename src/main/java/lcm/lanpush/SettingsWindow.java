@@ -1,7 +1,6 @@
 package lcm.lanpush;
 
 import java.awt.FlowLayout;
-import java.awt.Image;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.File;
@@ -9,7 +8,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -21,13 +19,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
-import javax.swing.UIManager;
 import javax.swing.filechooser.FileFilter;
-import javax.swing.text.AbstractDocument;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.DocumentFilter;
 
+import lcm.java.swing.Images;
 import lcm.java.swing.Layouts;
 import lcm.java.swing.RelativeLayout;
 import lcm.java.swing.RelativeLayout.Axis;
@@ -172,11 +166,7 @@ public class SettingsWindow {
         label.setHorizontalAlignment(SwingConstants.RIGHT);
         component.setToolTipText(hint);
         var hintPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        // var questionLabel = SwingComponents.createTooltipLabel(hint); // TODO: parametrizar tamanho do tooltip
-        var imageIcon = ((ImageIcon)UIManager.getIcon("OptionPane.questionIcon")).getImage();
-        imageIcon = imageIcon.getScaledInstance(Config.getFontSize(), Config.getFontSize(), Image.SCALE_SMOOTH);
-        var questionLabel = new JLabel(new ImageIcon(imageIcon));
-
+        var questionLabel = Images.createTooltipLabel(hint, Config.getFontSize());
 
         hintPanel.add(questionLabel);
         questionLabel.setHorizontalAlignment(SwingConstants.LEFT);
@@ -231,22 +221,12 @@ public class SettingsWindow {
     private void restrictInputs() {
         final String onlyNumbersRegex = "^[0-9]+$";
         final String onlyNumbersDotsAndCommasRegex = "^[0-9,.]+$";
-        restrictInput(fontSizeOption, onlyNumbersRegex);
-        restrictInput(messageMaxLengthOption, onlyNumbersRegex);
-        restrictInput(windowWidthOption, onlyNumbersRegex);
-        restrictInput(windowHeightOption, onlyNumbersRegex);
-        restrictInput(ipOption, onlyNumbersDotsAndCommasRegex);
+        SwingComponents.restrictInput(fontSizeOption, onlyNumbersRegex);
+        SwingComponents.restrictInput(messageMaxLengthOption, onlyNumbersRegex);
+        SwingComponents.restrictInput(windowWidthOption, onlyNumbersRegex);
+        SwingComponents.restrictInput(windowHeightOption, onlyNumbersRegex);
+        SwingComponents.restrictInput(ipOption, onlyNumbersDotsAndCommasRegex);
     }
 
-    private void restrictInput(JTextField input, String regex) { // TODO: static in SwingComponents
-        ((AbstractDocument) input.getDocument()).setDocumentFilter(new DocumentFilter() {
-            @Override
-            public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
-                if (text.matches(regex)) {
-                    super.replace(fb, offset, length, text, attrs);
-                }
-            }
-        });
-    }
 
 }

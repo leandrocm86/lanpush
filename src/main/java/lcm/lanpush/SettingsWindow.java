@@ -3,6 +3,8 @@ package lcm.lanpush;
 import java.awt.FlowLayout;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,12 +32,11 @@ import lcm.java.swing.SwingComponents;
 import lcm.java.system.logging.LogLevel;
 import lcm.java.system.logging.OLog;
 
-public class SettingsWindow {
-
-    private static SettingsWindow instance;
+public class SettingsWindow implements PropertyChangeListener {
 
     private final JFrame settingsFrame;
 
+    private JPanel contentPane;
     private final JTextField udpPortOption = new JTextField();
     private final JTextField ipOption = new JTextField();
     private final JTextField logPathOption = new JTextField();
@@ -67,7 +68,23 @@ public class SettingsWindow {
     private static final String HINT_ON_RECEIVE_RESTORE = "Whether to restore the main window when a message is received and the app is in background.";
     
 
-    private SettingsWindow() {
+    public SettingsWindow() {
+        settingsFrame = new JFrame("Settings");
+        settingsFrame.setSize(Config.getProportionalWidth(60), Config.getWindowHeight());
+
+        createContentPane();
+        initializeValues();
+        restrictInputs();
+        setUpdateEvents();
+
+        Screen.centralizeWindow(settingsFrame);
+        settingsFrame.setVisible(true);
+        SwingComponents.refresh(contentPane);
+
+        Config.addPropertyChangeListener(this);
+    }
+
+    private void createContentPane() {
         var optionPanes = new ArrayList<JPanel>();
         optionPanes.add(createOptionPanel("UDP port", udpPortOption, 20, HINT_UDP));
         optionPanes.add(createOptionPanel("IP address", ipOption, 80, HINT_IP));
@@ -81,32 +98,11 @@ public class SettingsWindow {
         optionPanes.add(createOptionPanel("Message max length", messageMaxLengthOption, 15, HINT_MESSAGE_MAX_LENGTH));
         optionPanes.add(createOptionPanel("Notify on message received", onReceiveNotifyOption, 10, HINT_ON_RECEIVE_NOTIFY));
         optionPanes.add(createOptionPanel("Restore on message received", onReceiveRestoreOption, 10, HINT_ON_RECEIVE_RESTORE));
-
-        initializeValues();
-        restrictInputs();
-        setUpdateEvents();
-        
-        settingsFrame = new JFrame("Settings");
-        settingsFrame.setSize(Config.getProportionalWidth(60), Config.getWindowHeight());
-        var contentPane = Layouts.fullVerticalPane(optionPanes);
+        contentPane = Layouts.fullVerticalPane(optionPanes);
+        Config.getProportionalFont(60).apply(true, contentPane);
         int scrollSize = Config.getProportionalHeight(5);
         var scrollPane = SwingComponents.createScrollPane(contentPane, scrollSize);
         settingsFrame.setContentPane(scrollPane);
-        Config.getProportionalFont(60).apply(contentPane);
-        Screen.centralizeWindow(settingsFrame);
-        settingsFrame.setVisible(true);
-        SwingComponents.refresh(contentPane);
-    }
-
-    public static SettingsWindow getInstance() {
-        if (instance == null)
-            instance = new SettingsWindow();
-        return instance;
-    }
-
-    public static void updateFont() {
-        instance.settingsFrame.dispose();
-        instance = new SettingsWindow();
     }
 
     private JPanel createLogFilePanel() {
@@ -120,7 +116,6 @@ public class SettingsWindow {
                 return "Text/log files (*.log, *.txt)";
             }
         });
-        Config.getProportionalFont(60).apply(true, fileChooser);
         logPathChooserButton.addActionListener(e -> {
             fileChooser.setSelectedFile(new File(logPathOption.getText().isBlank() ? "lanpush.log" : logPathOption.getText()));
             if (fileChooser.showOpenDialog(MainWindow.INST.mainFrame) == JFileChooser.APPROVE_OPTION) {
@@ -228,5 +223,12 @@ public class SettingsWindow {
         SwingComponents.restrictInput(ipOption, onlyNumbersDotsAndCommasRegex);
     }
 
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        if (evt.getPropertyName().equals(Config.EVENT_CONFIG_CHANGED + Config.GUI_FONT_SIZE_KEY)) {
+            createContentPane();
+            SwingComponents.refresh(settingsFrame);
+        }
+    }
 
 }

@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.Frame;
 import java.awt.Image;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -32,7 +34,7 @@ import lcm.java.system.Sys;
 import lcm.java.system.TimeFormatter;
 import lcm.java.system.logging.OLog;
 
-public class MainWindow {
+public class MainWindow implements PropertyChangeListener {
 
     public static final MainWindow INST = new MainWindow();
 
@@ -50,6 +52,8 @@ public class MainWindow {
         this.messagePane = new JPanel(new RelativeLayout(Axis.VERTICAL, 0, 0, true));
 		this.mainPane = createMainPane(this.statusLabel, this.inputPane, this.messagePane);
 		this.mainFrame = createMainFrame(this.mainPane);
+		setFonts();
+		Config.addPropertyChangeListener(this);
     }
 
 	private JFrame createMainFrame(JPanel mainPane) {
@@ -71,7 +75,6 @@ public class MainWindow {
 		
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		Screen.centralizeWindow(mainFrame);
-		Config.getDefaultFont().apply(mainPane);
 		mainFrame.setState(Config.startMinimized() ? JFrame.ICONIFIED : JFrame.NORMAL);
 
 		return mainFrame;
@@ -96,7 +99,7 @@ public class MainWindow {
 		});
 		settingsItem.addActionListener(actionEvent ->  {
 			OLog.info("Opening settings...");
-			SettingsWindow.getInstance();
+			new SettingsWindow();
 		});
 		aboutItem.addActionListener(actionEvent ->  {
 			OLog.info("Opening about...");
@@ -113,8 +116,6 @@ public class MainWindow {
 		menu.add(aboutItem);
 		menu.add(exitItem);
 		menuBar.add(menu);
-
-		Config.getDefaultFont().apply(menu, stopItem, reconnectItem, settingsItem, aboutItem, exitItem);
 
 		return menuBar;
 	}
@@ -219,16 +220,21 @@ public class MainWindow {
 		// SwingComponents.refresh(mainFrame);
 	}
 
-	public void updateFont() {
+	public void setFonts() {
+		Config.getDefaultFont().apply(true, mainFrame);
 		CustomFont buttonsFont = Config.getProportionalFont(70);
 		SwingComponents.filterChildren(mainFrame, component -> component instanceof JButton).stream().forEach(button -> buttonsFont.apply(button));
-		Config.getDefaultFont().apply(true, mainFrame);
-		// SwingComponents.refresh(mainFrame);
-		// Uppdate menu
 	}
 
 	public void updateStatus(boolean listening, String text) {
 		statusLabel.setBackground(listening ? Color.GREEN : Color.RED);
 		statusLabel.setText(text);
 	}
+
+	@Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        if (evt.getPropertyName().equals(Config.EVENT_CONFIG_CHANGED + Config.GUI_FONT_SIZE_KEY)) {
+			setFonts();
+		}
+    }
 }

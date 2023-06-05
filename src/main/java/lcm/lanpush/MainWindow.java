@@ -51,34 +51,21 @@ public class MainWindow implements PropertyChangeListener {
         this.inputPane = createInputPane(this.inputText);
         this.messagePane = new JPanel(new RelativeLayout(Axis.VERTICAL, 0, 0, true));
 		this.mainPane = createMainPane(this.statusLabel, this.inputPane, this.messagePane);
-		this.mainFrame = createMainFrame(this.mainPane);
-		setFonts();
-		Config.addPropertyChangeListener(this);
-    }
-
-	private JFrame createMainFrame(JPanel mainPane) {
-		JFrame mainFrame = null;
 
 		Image appIcon = SwingComponents.getImageFromResource("/lanpush.png"); // TODO: Move this from SwingComponents to Images
-		if (Config.minimizeToTray()) {
-			mainFrame = new SystemTrayFrame("LANPUSH", appIcon);
-		}
-		else {
-			mainFrame = new JFrame("LANPUSH");
-		}
-		mainFrame.setIconImage(appIcon);
-		mainFrame.setSize(Config.getWindowWidth(), Config.getWindowHeight());
+		this.mainFrame = Config.minimizeToTray() ? new SystemTrayFrame("LANPUSH", appIcon) : new JFrame("LANPUSH");
+		this.mainFrame.setIconImage(appIcon);
+		setWindowSize();
 		mainFrame.setLayout(new BorderLayout());
-		
 		mainFrame.setJMenuBar(createMenuBar());
 		mainFrame.add(mainPane);
-		
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		Screen.centralizeWindow(mainFrame);
 		mainFrame.setState(Config.startMinimized() ? JFrame.ICONIFIED : JFrame.NORMAL);
 
-		return mainFrame;
-	}
+		setFonts();
+		Config.addPropertyChangeListener(this);
+    }
 
 	private JMenuBar createMenuBar() {
 		JMenuBar menuBar = new JMenuBar();
@@ -215,9 +202,8 @@ public class MainWindow implements PropertyChangeListener {
     	SwingComponents.refresh(mainFrame);
     }
 
-	public void updateSize() {
+	public void setWindowSize() {
 		mainFrame.setSize(Config.getWindowWidth(), Config.getWindowHeight());
-		// SwingComponents.refresh(mainFrame);
 	}
 
 	public void setFonts() {
@@ -233,8 +219,10 @@ public class MainWindow implements PropertyChangeListener {
 
 	@Override
     public void propertyChange(PropertyChangeEvent evt) {
-        if (evt.getPropertyName().equals(Config.EVENT_CONFIG_CHANGED + Config.GUI_FONT_SIZE_KEY)) {
-			setFonts();
+		switch(evt.getPropertyName()) {
+			case Config.EVENT_CONFIG_CHANGED + Config.GUI_FONT_SIZE_KEY -> setFonts();
+			case Config.EVENT_CONFIG_CHANGED + Config.GUI_WINDOW_WIDTH_KEY -> setWindowSize();
+			case Config.EVENT_CONFIG_CHANGED + Config.GUI_WINDOW_HEIGHT_KEY -> setWindowSize();
 		}
     }
 }

@@ -70,7 +70,7 @@ public class SettingsWindow implements PropertyChangeListener {
 
     public SettingsWindow() {
         settingsFrame = new JFrame("Settings");
-        settingsFrame.setSize(Config.getProportionalWidth(60), Config.getWindowHeight());
+        setWindowSize();
 
         createContentPane();
         initializeValues();
@@ -82,6 +82,10 @@ public class SettingsWindow implements PropertyChangeListener {
         SwingComponents.refresh(contentPane);
 
         Config.addPropertyChangeListener(this);
+    }
+
+    private void setWindowSize() {
+        settingsFrame.setSize(Config.getProportionalWidth(60), Config.getWindowHeight());
     }
 
     private void createContentPane() {
@@ -225,9 +229,10 @@ public class SettingsWindow implements PropertyChangeListener {
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        if (evt.getPropertyName().equals(Config.EVENT_CONFIG_CHANGED + Config.GUI_FONT_SIZE_KEY)) {
-            createContentPane();
-            SwingComponents.refresh(settingsFrame);
+        switch (evt.getPropertyName()) {
+            case Config.EVENT_CONFIG_CHANGED + Config.GUI_FONT_SIZE_KEY -> {createContentPane(); SwingComponents.refresh(settingsFrame);}
+            case Config.EVENT_CONFIG_CHANGED + Config.GUI_WINDOW_WIDTH_KEY -> setWindowSize();
+            case Config.EVENT_CONFIG_CHANGED + Config.GUI_WINDOW_HEIGHT_KEY -> setWindowSize();
         }
     }
 

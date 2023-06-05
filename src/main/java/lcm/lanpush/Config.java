@@ -118,8 +118,7 @@ public class Config {
 	}
 
 	public static void setWindowWidth(String width) {
-		if (changeInt(GUI_WINDOW_WIDTH_KEY, getWindowWidth(), width))
-			MainWindow.INST.updateSize();
+		changeInt(GUI_WINDOW_WIDTH_KEY, getWindowWidth(), width);
 	}
 
 	public static int getProportionalWidth(float proportionPercentage) {
@@ -131,8 +130,7 @@ public class Config {
 	}
 
 	public static void setWindowHeight(String height) {
-		if (changeInt(GUI_WINDOW_HEIGHT_KEY, getWindowHeight(), height))
-			MainWindow.INST.updateSize();
+		changeInt(GUI_WINDOW_HEIGHT_KEY, getWindowHeight(), height);
 	}
 
 	public static int getProportionalHeight(float proportionPercentage) {

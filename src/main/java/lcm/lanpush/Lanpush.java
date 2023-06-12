@@ -14,7 +14,7 @@ public class Lanpush {
 			Config.init();
 			OLog.info("Starting LANPUSH");
 			ReceiverHandler.INST.startListening();
-			MainWindow.INST.restoreWindow();
+			MainWindow.INST.windowStart();
 		}
 		catch (Throwable t) {
 			OLog.error(t, "Error starting LANPUSH");

@@ -44,6 +44,7 @@ public class SettingsWindow implements PropertyChangeListener {
     private final JFileChooser fileChooser = new JFileChooser();
     private final JComboBox<String> logLevelOption = new JComboBox<>(LOG_LEVEL_OPTIONS);
     private final JCheckBox minimizeToTrayOption = new JCheckBox();
+    private final JCheckBox startMinimized = new JCheckBox();
     private final JTextField windowWidthOption = new JTextField();
     private final JTextField windowHeightOption = new JTextField();
     private final JTextField fontSizeOption = new JTextField();
@@ -55,10 +56,11 @@ public class SettingsWindow implements PropertyChangeListener {
     private static final String[] LOG_LEVEL_OPTIONS = new String[] {"DEBUG", "INFO", "WARN", "ERROR"};
 
     private static final String HINT_UDP = "The UDP port used to receive and to send messages. It must be a number between 1 and 65535.";
-    private static final String HINT_IP = "The IP address(es) used to receive and to send messages. Comma is used as separator when using multiple IPs.";
+    private static final String HINT_IP = "The IP address(es) used for sending messages to. Comma is used as separator when using multiple IPs.";
     private static final String HINT_LOG_PATH = "Path to the log file. If blank, the log will be printed to the console and not be persisted.";
     private static final String HINT_LOG_LEVEL = "The minimum level to be printed on log. DEBUG prints all the app info, and ERROR only prints error messages.";
-    private static final String HINT_MINIMIZE = "Whether to add the app to the system's tray when it gets minimized.";
+    private static final String HINT_MINIMIZE_TO_TRAY = "Whether to add the app to the system's tray when it gets minimized.";
+    private static final String HINT_START_MINIMIZED = "Whether the app should start minimized.";
     private static final String HINT_WINDOW_WIDTH = "The width of the main window (in pixels).";
     private static final String HINT_WINDOW_HEIGHT = "The height of the main window (in pixels).";
     private static final String HINT_FONT_SIZE = "The font size to be used in the app's texts.";
@@ -94,7 +96,8 @@ public class SettingsWindow implements PropertyChangeListener {
         optionPanes.add(createOptionPanel("IP address", ipOption, 80, HINT_IP));
         optionPanes.add(createOptionPanel("log file folder", createLogFilePanel(), 90, HINT_LOG_PATH));
         optionPanes.add(createOptionPanel("log level", logLevelOption, 40, HINT_LOG_LEVEL));
-        optionPanes.add(createOptionPanel("Minimize to tray", minimizeToTrayOption, 10, HINT_MINIMIZE));
+        optionPanes.add(createOptionPanel("Minimize to tray", minimizeToTrayOption, 10, HINT_MINIMIZE_TO_TRAY));
+        optionPanes.add(createOptionPanel("Start minimized", startMinimized, 10, HINT_START_MINIMIZED));
         optionPanes.add(createOptionPanel("Window width", windowWidthOption, 20, HINT_WINDOW_WIDTH));
         optionPanes.add(createOptionPanel("Window height", windowHeightOption, 20, HINT_WINDOW_HEIGHT));
         optionPanes.add(createOptionPanel("Font size", fontSizeOption, 15, HINT_FONT_SIZE));
@@ -179,6 +182,7 @@ public class SettingsWindow implements PropertyChangeListener {
         logPathOption.setText(Config.getLogPath());
         logLevelOption.setSelectedItem(Config.getLogLevel().name());
         minimizeToTrayOption.setSelected(Config.minimizeToTray());
+        startMinimized.setSelected(Config.startMinimized());
         windowWidthOption.setText(String.valueOf(Config.getWindowWidth()));
         windowHeightOption.setText(String.valueOf(Config.getWindowHeight()));
         fontSizeOption.setText(String.valueOf(Config.getFontSize()));
@@ -195,6 +199,7 @@ public class SettingsWindow implements PropertyChangeListener {
         logPathChooserButton.addFocusListener(new ConfigChanged(() -> {logPathChanged();}));
         logLevelOption.addFocusListener(new ConfigChanged(() -> Config.setLogLevel(LogLevel.valueOf(logLevelOption.getSelectedItem().toString()))));
         minimizeToTrayOption.addFocusListener(new ConfigChanged(() -> Config.setMinimizeToTray(minimizeToTrayOption.isSelected())));
+        startMinimized.addFocusListener(new ConfigChanged(() -> Config.setStartMinimized(startMinimized.isSelected())));
         windowWidthOption.addFocusListener(new ConfigChanged(() -> Config.setWindowWidth(windowWidthOption.getText())));
         windowHeightOption.addFocusListener(new ConfigChanged(() -> Config.setWindowHeight(windowHeightOption.getText())));
         fontSizeOption.addFocusListener(new ConfigChanged(() -> Config.setFontSize(fontSizeOption.getText())));

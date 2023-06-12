@@ -23,6 +23,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
 import lcm.java.swing.CustomFont;
+import lcm.java.swing.Images;
 import lcm.java.swing.Layouts;
 import lcm.java.swing.RelativeLayout;
 import lcm.java.swing.RelativeLayout.Axis;
@@ -52,8 +53,9 @@ public class MainWindow implements PropertyChangeListener {
         this.messagePane = new JPanel(new RelativeLayout(Axis.VERTICAL, 0, 0, true));
 		this.mainPane = createMainPane(this.statusLabel, this.inputPane, this.messagePane);
 
-		Image appIcon = SwingComponents.getImageFromResource("/lanpush.png"); // TODO: Move this from SwingComponents to Images
+		Image appIcon = Images.getImageFromResource("/lanpush.png");
 		this.mainFrame = Config.minimizeToTray() ? new SystemTrayFrame("LANPUSH", appIcon) : new JFrame("LANPUSH");
+		mainFrame.setState(Config.startMinimized() ? JFrame.ICONIFIED : JFrame.NORMAL);
 		this.mainFrame.setIconImage(appIcon);
 		setWindowSize();
 		mainFrame.setLayout(new BorderLayout());
@@ -61,11 +63,15 @@ public class MainWindow implements PropertyChangeListener {
 		mainFrame.add(mainPane);
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		Screen.centralizeWindow(mainFrame);
-		mainFrame.setState(Config.startMinimized() ? JFrame.ICONIFIED : JFrame.NORMAL);
 
 		setFonts();
 		Config.addPropertyChangeListener(this);
     }
+
+	public void windowStart() {
+		if (!Config.startMinimized())
+			restoreWindow();
+	}
 
 	private JMenuBar createMenuBar() {
 		JMenuBar menuBar = new JMenuBar();

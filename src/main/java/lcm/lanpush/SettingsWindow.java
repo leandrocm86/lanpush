@@ -32,10 +32,11 @@ import lcm.java.system.logging.OLog;
 
 public class SettingsWindow {
 
+    static final Config config = Config.getInstance();
+
     private static SettingsWindow instance;
 
     private final JFrame settingsFrame;
-
     private final JTextField udpPortOption = new JTextField();
     private final JTextField ipOption = new JTextField();
     private final JTextField logPathOption = new JTextField();
@@ -87,12 +88,12 @@ public class SettingsWindow {
         setUpdateEvents();
         
         settingsFrame = new JFrame("Settings");
-        settingsFrame.setSize(Config.getProportionalWidth(60), Config.getWindowHeight());
+        settingsFrame.setSize(config.getProportionalWidth(60), config.getWindowHeight());
         var contentPane = Layouts.fullVerticalPane(optionPanes);
-        int scrollSize = Config.getProportionalHeight(5);
+        int scrollSize = config.getProportionalHeight(5);
         var scrollPane = SwingComponents.createScrollPane(contentPane, scrollSize);
         settingsFrame.setContentPane(scrollPane);
-        Config.getProportionalFont(60).apply(contentPane);
+        config.getProportionalFont(60).apply(contentPane);
         Screen.centralizeWindow(settingsFrame);
         settingsFrame.setVisible(true);
         SwingComponents.refresh(contentPane);
@@ -120,7 +121,7 @@ public class SettingsWindow {
                 return "Text/log files (*.log, *.txt)";
             }
         });
-        Config.getProportionalFont(60).apply(true, fileChooser);
+        config.getProportionalFont(60).apply(true, fileChooser);
         logPathChooserButton.addActionListener(e -> {
             fileChooser.setSelectedFile(new File(logPathOption.getText().isBlank() ? "lanpush.log" : logPathOption.getText()));
             if (fileChooser.showOpenDialog(MainWindow.INST.mainFrame) == JFileChooser.APPROVE_OPTION) {
@@ -149,12 +150,12 @@ public class SettingsWindow {
 
     private void logPathChanged() {
         if (logPathOption.getText().isBlank()) {
-            Config.setLogPath(null);
+            config.setLogPath(null);
             return;
         }
         var selectedFile = new File(logPathOption.getText());
         if (this.canWriteOnFile(selectedFile)) {
-            Config.setLogPath(logPathOption.getText());
+            config.setLogPath(logPathOption.getText());
             OLog.info("Log path selected: %s", selectedFile.getAbsolutePath());
         }
         else
@@ -166,7 +167,7 @@ public class SettingsWindow {
         label.setHorizontalAlignment(SwingConstants.RIGHT);
         component.setToolTipText(hint);
         var hintPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        var questionLabel = Images.createTooltipLabel(hint, Config.getFontSize());
+        var questionLabel = Images.createTooltipLabel(hint, config.getFontSize());
 
         hintPanel.add(questionLabel);
         questionLabel.setHorizontalAlignment(SwingConstants.LEFT);
@@ -175,39 +176,39 @@ public class SettingsWindow {
     }
 
     private void initializeValues() {
-        udpPortOption.setText(String.valueOf(Config.getUdpPort()));
-        ipOption.setText(String.join(",", Config.getIp()));
-        logPathOption.setText(Config.getLogPath());
-        logLevelOption.setSelectedItem(Config.getLogLevel().name());
-        minimizeToTrayOption.setSelected(Config.minimizeToTray());
-        windowWidthOption.setText(String.valueOf(Config.getWindowWidth()));
-        windowHeightOption.setText(String.valueOf(Config.getWindowHeight()));
-        fontSizeOption.setText(String.valueOf(Config.getFontSize()));
-        messageDateFormatOption.setText(Config.getDateFormat());
-        messageMaxLengthOption.setText(String.valueOf(Config.getMaxLength()));
-        onReceiveNotifyOption.setSelected(Config.onReceiveNotify());
-        onReceiveRestoreOption.setSelected(Config.onReceiveRestore());
+        udpPortOption.setText(String.valueOf(config.getUdpPort()));
+        ipOption.setText(String.join(",", config.getIp()));
+        logPathOption.setText(config.getLogPath());
+        logLevelOption.setSelectedItem(config.getLogLevel().name());
+        minimizeToTrayOption.setSelected(config.minimizeToTray());
+        windowWidthOption.setText(String.valueOf(config.getWindowWidth()));
+        windowHeightOption.setText(String.valueOf(config.getWindowHeight()));
+        fontSizeOption.setText(String.valueOf(config.getFontSize()));
+        messageDateFormatOption.setText(config.getDateFormat());
+        messageMaxLengthOption.setText(String.valueOf(config.getMaxLength()));
+        onReceiveNotifyOption.setSelected(config.onReceiveNotify());
+        onReceiveRestoreOption.setSelected(config.onReceiveRestore());
     }
 
     private void setUpdateEvents() {
-        udpPortOption.addFocusListener(new ConfigChanged(() -> Config.setUdpPort(udpPortOption.getText())));
-        ipOption.addFocusListener(new ConfigChanged(() -> Config.setIp(ipOption.getText())));
-        logPathOption.addFocusListener(new ConfigChanged(() -> {logPathChanged();}));
-        logPathChooserButton.addFocusListener(new ConfigChanged(() -> {logPathChanged();}));
-        logLevelOption.addFocusListener(new ConfigChanged(() -> Config.setLogLevel(LogLevel.valueOf(logLevelOption.getSelectedItem().toString()))));
-        minimizeToTrayOption.addFocusListener(new ConfigChanged(() -> Config.setMinimizeToTray(minimizeToTrayOption.isSelected())));
-        windowWidthOption.addFocusListener(new ConfigChanged(() -> Config.setWindowWidth(windowWidthOption.getText())));
-        windowHeightOption.addFocusListener(new ConfigChanged(() -> Config.setWindowHeight(windowHeightOption.getText())));
-        fontSizeOption.addFocusListener(new ConfigChanged(() -> Config.setFontSize(fontSizeOption.getText())));
-        messageDateFormatOption.addFocusListener(new ConfigChanged(() -> Config.setDateFormat(messageDateFormatOption.getText())));
-        messageMaxLengthOption.addFocusListener(new ConfigChanged(() -> Config.setMaxLength(messageMaxLengthOption.getText())));
-        onReceiveNotifyOption.addFocusListener(new ConfigChanged(() -> Config.setOnReceiveNotify(onReceiveNotifyOption.isSelected())));
-        onReceiveRestoreOption.addFocusListener(new ConfigChanged(() -> Config.setOnReceiveRestore(onReceiveRestoreOption.isSelected())));
+        udpPortOption.addFocusListener(new configChanged(() -> config.setUdpPort(udpPortOption.getText())));
+        ipOption.addFocusListener(new configChanged(() -> config.setIp(ipOption.getText())));
+        logPathOption.addFocusListener(new configChanged(() -> {logPathChanged();}));
+        logPathChooserButton.addFocusListener(new configChanged(() -> {logPathChanged();}));
+        logLevelOption.addFocusListener(new configChanged(() -> config.setLogLevel(LogLevel.valueOf(logLevelOption.getSelectedItem().toString()))));
+        minimizeToTrayOption.addFocusListener(new configChanged(() -> config.setMinimizeToTray(minimizeToTrayOption.isSelected())));
+        windowWidthOption.addFocusListener(new configChanged(() -> config.setWindowWidth(windowWidthOption.getText())));
+        windowHeightOption.addFocusListener(new configChanged(() -> config.setWindowHeight(windowHeightOption.getText())));
+        fontSizeOption.addFocusListener(new configChanged(() -> config.setFontSize(fontSizeOption.getText())));
+        messageDateFormatOption.addFocusListener(new configChanged(() -> config.setDateFormat(messageDateFormatOption.getText())));
+        messageMaxLengthOption.addFocusListener(new configChanged(() -> config.setMaxLength(messageMaxLengthOption.getText())));
+        onReceiveNotifyOption.addFocusListener(new configChanged(() -> config.setOnReceiveNotify(onReceiveNotifyOption.isSelected())));
+        onReceiveRestoreOption.addFocusListener(new configChanged(() -> config.setOnReceiveRestore(onReceiveRestoreOption.isSelected())));
     }
 
-    private class ConfigChanged implements FocusListener {
+    private class configChanged implements FocusListener {
         Runnable updateAction;
-        ConfigChanged(Runnable updateAction) {
+        configChanged(Runnable updateAction) {
             this.updateAction = updateAction;
         }
         @Override

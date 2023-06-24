@@ -7,13 +7,15 @@ import lcm.java.system.logging.OLog;
 
 class ReceiverHandler {
 
+    static final Config config = Config.getInstance();
+
     public static final ReceiverHandler INST = new ReceiverHandler();
     private Receiver receiver = new Receiver();
     
     private ReceiverHandler() {}
 
     void startListening() {
-        int port = Config.getUdpPort();
+        int port = config.getUdpPort();
         new Thread(() -> {
             try {
                 MainWindow.INST.updateStatus(true, "Listening on port " + port);

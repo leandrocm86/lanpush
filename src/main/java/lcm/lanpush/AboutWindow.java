@@ -13,7 +13,7 @@ import lcm.java.swing.SwingComponents;
 
 public class AboutWindow {
 
-private static final String DESCRIPTION =
+    private static final String DESCRIPTION =
         """
             <html>
                 THIS IS STILL A WORK IN PROGRESS THIS IS STILL A WORK IN PROGRESS THIS IS STILL A WORK IN PROGRESS.
@@ -21,6 +21,8 @@ private static final String DESCRIPTION =
                 THIS IS STILL A WORK IN PROGRESSTHIS IS STILL A WORK IN PROGRESSTHIS IS STILL A WORK IN PROGRESS.
             </html>
         """;
+    
+    final Config config = Config.getInstance();
 
     final JFrame aboutFrame;
     final JPanel aboutPane;
@@ -38,8 +40,8 @@ private static final String DESCRIPTION =
         aboutPane = Layouts.verticalPane(Arrays.asList(appIcon, descriptionText, closeButton), 30, 50, 20);
         aboutFrame.setContentPane(aboutPane);
 
-        Config.getDefaultFont().apply(aboutFrame);
-        aboutFrame.setSize(Config.getProportionalWidth(50), Config.getProportionalHeight(50));
+        config.getDefaultFont().apply(aboutFrame);
+        aboutFrame.setSize(config.getProportionalWidth(50), config.getProportionalHeight(50));
         aboutFrame.setVisible(true);
         aboutFrame.toFront();
     }

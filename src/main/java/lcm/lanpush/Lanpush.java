@@ -9,9 +9,10 @@ import lcm.java.system.logging.OLog;
 
 public class Lanpush {
 
+	static final Config config = Config.getInstance();
+
 	public static void main(String[] args) {
 		try {
-			Config.init();
 			OLog.info("Starting LANPUSH");
 			ReceiverHandler.INST.startListening();
 			MainWindow.INST.restoreWindow();
@@ -24,8 +25,8 @@ public class Lanpush {
 	
 	public static void sendMessage(String msg) {
 		try {
-			OLog.info("Sending message to '%s' on port %d: '%s'", String.join(", ", Config.getIp()), Config.getUdpPort(), msg);
-			Sender.send(Config.getIp(), Config.getUdpPort(), msg);
+			OLog.info("Sending message to '%s' on port %d: '%s'", String.join(", ", config.getIp()), config.getUdpPort(), msg);
+			Sender.send(config.getIp(), config.getUdpPort(), msg);
 		} catch (IOException e) {
 			OLog.error(e, "Error sending message!");
 			alertError();
@@ -33,7 +34,7 @@ public class Lanpush {
 	}
 
 	private static void alertError() {
-		var errorMessage = Config.getLogPath().isBlank() ? "Error! Read the output for details." : "Error! Check the log file for details.";
+		var errorMessage = config.getLogPath().isBlank() ? "Error! Read the output for details." : "Error! Check the log file for details.";
 		JOptionPane.showMessageDialog(null, errorMessage, "Error", JOptionPane.ERROR_MESSAGE);
 	}
 

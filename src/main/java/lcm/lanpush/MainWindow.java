@@ -34,6 +34,8 @@ import lcm.java.system.logging.OLog;
 
 public class MainWindow {
 
+	static final Config config = Config.getInstance();
+
     public static final MainWindow INST = new MainWindow();
 
 	final JFrame mainFrame;
@@ -56,14 +58,14 @@ public class MainWindow {
 		JFrame mainFrame = null;
 
 		Image appIcon = SwingComponents.getImageFromResource("/lanpush.png"); // TODO: Move this from SwingComponents to Images
-		if (Config.minimizeToTray()) {
+		if (config.minimizeToTray()) {
 			mainFrame = new SystemTrayFrame("LANPUSH", appIcon);
 		}
 		else {
 			mainFrame = new JFrame("LANPUSH");
 		}
 		mainFrame.setIconImage(appIcon);
-		mainFrame.setSize(Config.getWindowWidth(), Config.getWindowHeight());
+		mainFrame.setSize(config.getWindowWidth(), config.getWindowHeight());
 		mainFrame.setLayout(new BorderLayout());
 		
 		mainFrame.setJMenuBar(createMenuBar());
@@ -71,8 +73,8 @@ public class MainWindow {
 		
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		Screen.centralizeWindow(mainFrame);
-		Config.getDefaultFont().apply(mainPane);
-		mainFrame.setState(Config.startMinimized() ? JFrame.ICONIFIED : JFrame.NORMAL);
+		config.getDefaultFont().apply(mainPane);
+		mainFrame.setState(config.startMinimized() ? JFrame.ICONIFIED : JFrame.NORMAL);
 
 		return mainFrame;
 	}
@@ -114,13 +116,13 @@ public class MainWindow {
 		menu.add(exitItem);
 		menuBar.add(menu);
 
-		Config.getDefaultFont().apply(menu, stopItem, reconnectItem, settingsItem, aboutItem, exitItem);
+		config.getDefaultFont().apply(menu, stopItem, reconnectItem, settingsItem, aboutItem, exitItem);
 
 		return menuBar;
 	}
 
 	private JPanel createMainPane(JLabel statusLabel, JPanel inputPane, JPanel messagePane) {
-		var scrollingMessagePane = SwingComponents.createScrollPane(messagePane, Config.getProportionalWidth(1));
+		var scrollingMessagePane = SwingComponents.createScrollPane(messagePane, config.getProportionalWidth(1));
 		return Layouts.fullVerticalPane(Arrays.asList(statusLabel, inputPane, scrollingMessagePane), 1, 1, 7);
 	}
 
@@ -190,17 +192,17 @@ public class MainWindow {
 		});
 		newLine.add(copyBtn, 1f);
 		newLine.add(browseBtn, 1f);
-		String dateStr = new TimeFormatter(Config.getDateFormat()).localToString(LocalDateTime.now());
-		String truncatedMessage = msg.length() > Config.getMaxLength() ? msg.substring(0, Config.getMaxLength()) : msg;
+		String dateStr = new TimeFormatter(config.getDateFormat()).localToString(LocalDateTime.now());
+		String truncatedMessage = msg.length() > config.getMaxLength() ? msg.substring(0, config.getMaxLength()) : msg;
 		JLabel label = new JLabel(String.format("%s %s", dateStr, truncatedMessage));
 		newLine.add(label, 8f);
-		Config.getDefaultFont().apply(label);
-		Config.getProportionalFont(70).apply(copyBtn, browseBtn);
+		config.getDefaultFont().apply(label);
+		config.getProportionalFont(70).apply(copyBtn, browseBtn);
 		messagePane.add(newLine);
 
-		if (Config.onReceiveRestore())
+		if (config.onReceiveRestore())
 			restoreWindow();
-		if (mainFrame instanceof SystemTrayFrame && Config.onReceiveNotify()) {
+		if (mainFrame instanceof SystemTrayFrame && config.onReceiveNotify()) {
 			SystemTrayFrame frame = (SystemTrayFrame) mainFrame;
 			frame.addMessageListener(event -> {frame.restore();}); // Event for clicking the notification message.
 			frame.displayMessage("LANPUSH", " >>> MESSAGE RECEIVED: " + msg);
@@ -215,14 +217,14 @@ public class MainWindow {
     }
 
 	public void updateSize() {
-		mainFrame.setSize(Config.getWindowWidth(), Config.getWindowHeight());
+		mainFrame.setSize(config.getWindowWidth(), config.getWindowHeight());
 		// SwingComponents.refresh(mainFrame);
 	}
 
 	public void updateFont() {
-		CustomFont buttonsFont = Config.getProportionalFont(70);
+		CustomFont buttonsFont = config.getProportionalFont(70);
 		SwingComponents.filterChildren(mainFrame, component -> component instanceof JButton).stream().forEach(button -> buttonsFont.apply(button));
-		Config.getDefaultFont().apply(true, mainFrame);
+		config.getDefaultFont().apply(true, mainFrame);
 		// SwingComponents.refresh(mainFrame);
 		// Uppdate menu
 	}

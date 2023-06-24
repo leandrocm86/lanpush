@@ -26,15 +26,15 @@ public class Config {
 	private static final String GUI_MESSAGE_MAX_LENGTH_KEY = "gui.message.max_length";
 	private static final String GUI_ON_RECEIVE_NOTIFY = "gui.on_receive.notify";
 	private static final String GUI_ON_RECEIVE_RESTORE = "gui.on_receive.restore";
+
+	private static final Config instance = new Config();
 	
-	private static Preferences prefs = Preferences.userRoot().node("lcm.lanpush");
+	private Preferences prefs = Preferences.userRoot().node("lcm.lanpush");
 
-	private Config() {}
-
-	public static void init() {
+	private Config() {
 		OLog.setMinimumLevel(getLogLevel());
-		if (Config.getLogPath() != null && !Config.getLogPath().isBlank())
-			OLog.setFilePath(Config.getLogPath());
+		if (getLogPath() != null && !getLogPath().isBlank())
+			OLog.setFilePath(getLogPath());
 		// else // TODO: DESCOMENTAR QUANDO ESTIVER PRONTO
 			OLog.setPrintStream(System.out);
 
@@ -48,139 +48,143 @@ public class Config {
 		}
 	}
 
-	public static int getUdpPort() {
+	public static Config getInstance() {
+		return instance;
+	}
+
+	public int getUdpPort() {
 		return prefs.getInt(CONNECTION_UDP_PORT_KEY, 1050);
 	}
 
-	public static void setUdpPort(String port) {
-		if (changeInt(CONNECTION_UDP_PORT_KEY, Config.getUdpPort(), port))
+	public void setUdpPort(String port) {
+		if (changeInt(CONNECTION_UDP_PORT_KEY, getUdpPort(), port))
 			ReceiverHandler.INST.reconnect();
 	}
 
-	public static String[] getIp() {
+	public String[] getIp() {
 		return prefs.get(CONNECTION_IP_KEY, "192.168.0.255").split(",");
 	}
 
-	public static void setIp(String ip) {
-		changeString(CONNECTION_IP_KEY, String.join(",", Config.getIp()), ip);
+	public void setIp(String ip) {
+		changeString(CONNECTION_IP_KEY, String.join(",", getIp()), ip);
 	}
 
-	public static String getLogPath() {
+	public String getLogPath() {
 		return prefs.get(LOG_PATH_KEY, "");
 	}
 
-	public static void setLogPath(String path) {
+	public void setLogPath(String path) {
 		if (changeString(LOG_PATH_KEY, getLogPath(), path)) {
 			OLog.setFilePath(path != null && path.isBlank() ? null : path);
 			OLog.info("OLog file setted: %s", path);
 		}
 	}
 
-	public static LogLevel getLogLevel() {
+	public LogLevel getLogLevel() {
 		return LogLevel.valueOf(prefs.get(LOG_LEVEL_KEY, "INFO"));
 	}
 
-	public static void setLogLevel(LogLevel level) {
+	public void setLogLevel(LogLevel level) {
 		if (changeString(LOG_LEVEL_KEY, getLogLevel().name(), level.name()))
 			OLog.setMinimumLevel(level);
 	}
 
-	public static boolean minimizeToTray() {
+	public boolean minimizeToTray() {
 		return prefs.getBoolean(GUI_MINIMIZE_TO_TRAY_KEY, false);
 	}
 
-	public static void setMinimizeToTray(boolean minimize) {
+	public void setMinimizeToTray(boolean minimize) {
 		if (changeBoolean(GUI_MINIMIZE_TO_TRAY_KEY, minimizeToTray(), minimize))
 			Lanpush.showWarning("Changing the tray icon visibility will not take effect until you restart the application!");
 	}
 
-	public static boolean startMinimized() {
+	public boolean startMinimized() {
 		return prefs.getBoolean(GUI_START_MINIMIZED_KEY, false);
 	}
 
-	public static void setStartMinimized(boolean start) {
+	public void setStartMinimized(boolean start) {
 		changeBoolean(GUI_START_MINIMIZED_KEY, startMinimized(), start);
 	}
 
-	public static int getWindowWidth() {
+	public int getWindowWidth() {
 		return prefs.getInt(GUI_WINDOW_WIDTH_KEY, Screen.getScreenWidth() > 1920 ? 1500 : 1000);
 	}
 
-	public static void setWindowWidth(String width) {
+	public void setWindowWidth(String width) {
 		if (changeInt(GUI_WINDOW_WIDTH_KEY, getWindowWidth(), width))
 			MainWindow.INST.updateSize();
 	}
 
-	public static int getProportionalWidth(float proportionPercentage) {
+	public int getProportionalWidth(float proportionPercentage) {
 		return Math.round(getWindowWidth() * proportionPercentage / 100);
 	}
 
-	public static int getWindowHeight() {
+	public int getWindowHeight() {
 		return prefs.getInt(GUI_WINDOW_HEIGHT_KEY, 500);
 	}
 
-	public static void setWindowHeight(String height) {
+	public void setWindowHeight(String height) {
 		if (changeInt(GUI_WINDOW_HEIGHT_KEY, getWindowHeight(), height))
 			MainWindow.INST.updateSize();
 	}
 
-	public static int getProportionalHeight(float proportionPercentage) {
+	public int getProportionalHeight(float proportionPercentage) {
 		return Math.round(getWindowHeight() * proportionPercentage / 100);
 	}
 
-	public static int getFontSize() {
+	public int getFontSize() {
 		return prefs.getInt(GUI_FONT_SIZE_KEY, 25);
 	}
 
-	public static void setFontSize(String size) {
+	public void setFontSize(String size) {
 		if (changeInt(GUI_FONT_SIZE_KEY, getFontSize(), size)) {
 			SettingsWindow.updateFont();
 			MainWindow.INST.updateFont();
 		}
 	}
 
-	public static CustomFont getProportionalFont(float proportionPercentage) {
+	public CustomFont getProportionalFont(float proportionPercentage) {
 		return new CustomFont("Arial", Math.round(getFontSize() * proportionPercentage / 100));
 	}
 
-	public static CustomFont getDefaultFont() {
+	public CustomFont getDefaultFont() {
 		return new CustomFont("Arial", getFontSize());
 	}
 
-	public static String getDateFormat() {
+	public String getDateFormat() {
 		return prefs.get(GUI_MESSAGE_DATE_FORMAT_KEY, "yyyy-MM-dd HH:mm:ss");
 	}
 
-	public static void setDateFormat(String dateFormat) {
+	public void setDateFormat(String dateFormat) {
 		DateTimeFormatter.ofPattern(dateFormat); // Tests the format so an error is thrown when it's invalid.
 		changeString(GUI_MESSAGE_DATE_FORMAT_KEY, getDateFormat(), dateFormat);
 	}
 
-	public static int getMaxLength() {
+	public int getMaxLength() {
 		return prefs.getInt(GUI_MESSAGE_MAX_LENGTH_KEY, 50);
 	}
 
-	public static void setMaxLength(String maxLength) {
+	public void setMaxLength(String maxLength) {
 		changeInt(GUI_MESSAGE_MAX_LENGTH_KEY, getMaxLength(), maxLength);
 	}
 
-	public static boolean onReceiveNotify() {
+	public boolean onReceiveNotify() {
 		return prefs.getBoolean(GUI_ON_RECEIVE_NOTIFY, true);
 	}
 
-	public static void setOnReceiveNotify(boolean notify) {
+	public void setOnReceiveNotify(boolean notify) {
 		changeBoolean(GUI_ON_RECEIVE_NOTIFY, onReceiveNotify(), notify);
 	}
 
-	public static boolean onReceiveRestore() {
+	public boolean onReceiveRestore() {
 		return prefs.getBoolean(GUI_ON_RECEIVE_RESTORE, true);
 	}
 
-	public static void setOnReceiveRestore(boolean restore) {
+	public void setOnReceiveRestore(boolean restore) {
 		changeBoolean(GUI_ON_RECEIVE_RESTORE, onReceiveRestore(), restore);
 	}
 
-	private static boolean changeInt(String key, int oldValue, String newValueString) {
+	private boolean changeInt(String key, int oldValue, String newValueString) {
 		int newValue = Integer.parseInt(newValueString);
 		if (oldValue != newValue) {
 			OLog.info("Changing '%s' from %d to %d", key, oldValue, newValue);
@@ -190,7 +194,7 @@ public class Config {
 		return false;
 	}
 
-	private static boolean changeBoolean(String key, boolean oldValue, boolean newValue) {
+	private boolean changeBoolean(String key, boolean oldValue, boolean newValue) {
 		if (oldValue != newValue) {
 			OLog.info("Changing '%s' from %b to %b", key, oldValue, newValue);
 			prefs.putBoolean(key, newValue);
@@ -199,7 +203,7 @@ public class Config {
 		return false;
 	}
 
-	private static boolean changeString(String key, String oldValue, String newValue) {
+	private boolean changeString(String key, String oldValue, String newValue) {
 		if (oldValue == null)
 			oldValue = "";
 		if (newValue == null)

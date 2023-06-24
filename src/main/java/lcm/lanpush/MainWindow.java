@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.Frame;
 import java.awt.Image;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -21,6 +23,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
 import lcm.java.swing.CustomFont;
+import lcm.java.swing.Images;
 import lcm.java.swing.Layouts;
 import lcm.java.swing.RelativeLayout;
 import lcm.java.swing.RelativeLayout.Axis;
@@ -32,7 +35,7 @@ import lcm.java.system.Sys;
 import lcm.java.system.TimeFormatter;
 import lcm.java.system.logging.OLog;
 
-public class MainWindow {
+public class MainWindow implements PropertyChangeListener {
 
 	static final Config config = Config.getInstance();
 
@@ -51,32 +54,25 @@ public class MainWindow {
         this.inputPane = createInputPane(this.inputText);
         this.messagePane = new JPanel(new RelativeLayout(Axis.VERTICAL, 0, 0, true));
 		this.mainPane = createMainPane(this.statusLabel, this.inputPane, this.messagePane);
-		this.mainFrame = createMainFrame(this.mainPane);
-    }
 
-	private JFrame createMainFrame(JPanel mainPane) {
-		JFrame mainFrame = null;
-
-		Image appIcon = SwingComponents.getImageFromResource("/lanpush.png"); // TODO: Move this from SwingComponents to Images
-		if (config.minimizeToTray()) {
-			mainFrame = new SystemTrayFrame("LANPUSH", appIcon);
-		}
-		else {
-			mainFrame = new JFrame("LANPUSH");
-		}
-		mainFrame.setIconImage(appIcon);
-		mainFrame.setSize(config.getWindowWidth(), config.getWindowHeight());
+		Image appIcon = Images.getImageFromResource("/lanpush.png");
+		this.mainFrame = config.minimizeToTray() ? new SystemTrayFrame("LANPUSH", appIcon) : new JFrame("LANPUSH");
+		mainFrame.setState(config.startMinimized() ? JFrame.ICONIFIED : JFrame.NORMAL);
+		this.mainFrame.setIconImage(appIcon);
+		setWindowSize();
 		mainFrame.setLayout(new BorderLayout());
-		
 		mainFrame.setJMenuBar(createMenuBar());
 		mainFrame.add(mainPane);
-		
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		Screen.centralizeWindow(mainFrame);
-		config.getDefaultFont().apply(mainPane);
-		mainFrame.setState(config.startMinimized() ? JFrame.ICONIFIED : JFrame.NORMAL);
 
-		return mainFrame;
+		setFonts();
+		config.addPropertyChangeListener(this);
+    }
+
+	public void windowStart() {
+		if (!config.startMinimized())
+			restoreWindow();
 	}
 
 	private JMenuBar createMenuBar() {
@@ -98,7 +94,7 @@ public class MainWindow {
 		});
 		settingsItem.addActionListener(actionEvent ->  {
 			OLog.info("Opening settings...");
-			SettingsWindow.getInstance();
+			new SettingsWindow();
 		});
 		aboutItem.addActionListener(actionEvent ->  {
 			OLog.info("Opening about...");
@@ -115,8 +111,6 @@ public class MainWindow {
 		menu.add(aboutItem);
 		menu.add(exitItem);
 		menuBar.add(menu);
-
-		config.getDefaultFont().apply(menu, stopItem, reconnectItem, settingsItem, aboutItem, exitItem);
 
 		return menuBar;
 	}
@@ -216,21 +210,27 @@ public class MainWindow {
     	SwingComponents.refresh(mainFrame);
     }
 
-	public void updateSize() {
+	public void setWindowSize() {
 		mainFrame.setSize(config.getWindowWidth(), config.getWindowHeight());
-		// SwingComponents.refresh(mainFrame);
 	}
 
-	public void updateFont() {
+	public void setFonts() {
+		config.getDefaultFont().apply(true, mainFrame);
 		CustomFont buttonsFont = config.getProportionalFont(70);
 		SwingComponents.filterChildren(mainFrame, component -> component instanceof JButton).stream().forEach(button -> buttonsFont.apply(button));
-		config.getDefaultFont().apply(true, mainFrame);
-		// SwingComponents.refresh(mainFrame);
-		// Uppdate menu
 	}
 
 	public void updateStatus(boolean listening, String text) {
 		statusLabel.setBackground(listening ? Color.GREEN : Color.RED);
 		statusLabel.setText(text);
 	}
+
+	@Override
+    public void propertyChange(PropertyChangeEvent evt) {
+		switch(evt.getPropertyName()) {
+			case Config.EVENT_CONFIG_CHANGED + Config.GUI_FONT_SIZE_KEY -> setFonts();
+			case Config.EVENT_CONFIG_CHANGED + Config.GUI_WINDOW_WIDTH_KEY -> setWindowSize();
+			case Config.EVENT_CONFIG_CHANGED + Config.GUI_WINDOW_HEIGHT_KEY -> setWindowSize();
+		}
+    }
 }

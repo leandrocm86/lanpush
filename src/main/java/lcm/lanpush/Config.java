@@ -1,5 +1,7 @@
 package lcm.lanpush;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.prefs.BackingStoreException;
@@ -13,23 +15,27 @@ import lcm.java.system.logging.OLog;
 
 public class Config {
 	
-	private static final String CONNECTION_UDP_PORT_KEY = "connection.udp_port";
-	private static final String CONNECTION_IP_KEY = "connection.ip";
-	private static final String LOG_PATH_KEY = "log.file.path";
-	private static final String LOG_LEVEL_KEY = "log.level";
-	private static final String GUI_MINIMIZE_TO_TRAY_KEY = "gui.minimize_to_tray";
-	private static final String GUI_START_MINIMIZED_KEY = "gui.start_minimized";
-	private static final String GUI_WINDOW_WIDTH_KEY = "gui.window.width";
-	private static final String GUI_WINDOW_HEIGHT_KEY = "gui.window.height";
-	private static final String GUI_FONT_SIZE_KEY = "gui.font.size";
-	private static final String GUI_MESSAGE_DATE_FORMAT_KEY = "gui.message.date_format";
-	private static final String GUI_MESSAGE_MAX_LENGTH_KEY = "gui.message.max_length";
-	private static final String GUI_ON_RECEIVE_NOTIFY = "gui.on_receive.notify";
-	private static final String GUI_ON_RECEIVE_RESTORE = "gui.on_receive.restore";
+	private Preferences prefs = Preferences.userRoot().node("lcm.lanpush");
+
+	public static final String CONNECTION_UDP_PORT_KEY = "connection.udp_port";
+	public static final String CONNECTION_IP_KEY = "connection.ip";
+	public static final String LOG_PATH_KEY = "log.file.path";
+	public static final String LOG_LEVEL_KEY = "log.level";
+	public static final String GUI_MINIMIZE_TO_TRAY_KEY = "gui.minimize_to_tray";
+	public static final String GUI_START_MINIMIZED_KEY = "gui.start_minimized";
+	public static final String GUI_WINDOW_WIDTH_KEY = "gui.window.width";
+	public static final String GUI_WINDOW_HEIGHT_KEY = "gui.window.height";
+	public static final String GUI_FONT_SIZE_KEY = "gui.font.size";
+	public static final String GUI_MESSAGE_DATE_FORMAT_KEY = "gui.message.date_format";
+	public static final String GUI_MESSAGE_MAX_LENGTH_KEY = "gui.message.max_length";
+	public static final String GUI_ON_RECEIVE_NOTIFY = "gui.on_receive.notify";
+	public static final String GUI_ON_RECEIVE_RESTORE = "gui.on_receive.restore";
+
+	private static PropertyChangeSupport propertyObservable = new PropertyChangeSupport(new Config());
+
+	public static final String EVENT_CONFIG_CHANGED = "event.config_changed.";
 
 	private static final Config instance = new Config();
-	
-	private Preferences prefs = Preferences.userRoot().node("lcm.lanpush");
 
 	private Config() {
 		OLog.setMinimumLevel(getLogLevel());
@@ -57,8 +63,13 @@ public class Config {
 	}
 
 	public void setUdpPort(String port) {
-		if (changeInt(CONNECTION_UDP_PORT_KEY, getUdpPort(), port))
+		if (changeInt(CONNECTION_UDP_PORT_KEY, getUdpPort(), port)) {
 			ReceiverHandler.INST.reconnect();
+		}
+	}
+
+	public void addPropertyChangeListener(PropertyChangeListener listener) {
+		propertyObservable.addPropertyChangeListener(listener);
 	}
 
 	public String[] getIp() {
@@ -111,8 +122,7 @@ public class Config {
 	}
 
 	public void setWindowWidth(String width) {
-		if (changeInt(GUI_WINDOW_WIDTH_KEY, getWindowWidth(), width))
-			MainWindow.INST.updateSize();
+		changeInt(GUI_WINDOW_WIDTH_KEY, getWindowWidth(), width);
 	}
 
 	public int getProportionalWidth(float proportionPercentage) {
@@ -124,8 +134,7 @@ public class Config {
 	}
 
 	public void setWindowHeight(String height) {
-		if (changeInt(GUI_WINDOW_HEIGHT_KEY, getWindowHeight(), height))
-			MainWindow.INST.updateSize();
+		changeInt(GUI_WINDOW_HEIGHT_KEY, getWindowHeight(), height);
 	}
 
 	public int getProportionalHeight(float proportionPercentage) {
@@ -137,10 +146,7 @@ public class Config {
 	}
 
 	public void setFontSize(String size) {
-		if (changeInt(GUI_FONT_SIZE_KEY, getFontSize(), size)) {
-			SettingsWindow.updateFont();
-			MainWindow.INST.updateFont();
-		}
+		changeInt(GUI_FONT_SIZE_KEY, getFontSize(), size);
 	}
 
 	public CustomFont getProportionalFont(float proportionPercentage) {
@@ -189,6 +195,7 @@ public class Config {
 		if (oldValue != newValue) {
 			OLog.info("Changing '%s' from %d to %d", key, oldValue, newValue);
 			prefs.putInt(key, newValue);
+			propertyObservable.firePropertyChange(EVENT_CONFIG_CHANGED + key, oldValue, newValue);
 			return true;
 		}
 		return false;
@@ -198,6 +205,7 @@ public class Config {
 		if (oldValue != newValue) {
 			OLog.info("Changing '%s' from %b to %b", key, oldValue, newValue);
 			prefs.putBoolean(key, newValue);
+			propertyObservable.firePropertyChange(EVENT_CONFIG_CHANGED + key, oldValue, newValue);
 			return true;
 		}
 		return false;
@@ -211,6 +219,7 @@ public class Config {
 		if (!oldValue.trim().equals(newValue.trim())) {
 			OLog.info("Changing '%s' from '%s' to '%s'", key, oldValue, newValue);
 			prefs.put(key, newValue);
+			propertyObservable.firePropertyChange(EVENT_CONFIG_CHANGED + key, oldValue, newValue);
 			return true;
 		}
 		return false;

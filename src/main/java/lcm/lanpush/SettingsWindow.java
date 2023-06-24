@@ -3,6 +3,8 @@ package lcm.lanpush;
 import java.awt.FlowLayout;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,13 +32,13 @@ import lcm.java.swing.SwingComponents;
 import lcm.java.system.logging.LogLevel;
 import lcm.java.system.logging.OLog;
 
-public class SettingsWindow {
+public class SettingsWindow implements PropertyChangeListener {
 
     static final Config config = Config.getInstance();
 
-    private static SettingsWindow instance;
-
     private final JFrame settingsFrame;
+
+    private JPanel contentPane;
     private final JTextField udpPortOption = new JTextField();
     private final JTextField ipOption = new JTextField();
     private final JTextField logPathOption = new JTextField();
@@ -44,6 +46,7 @@ public class SettingsWindow {
     private final JFileChooser fileChooser = new JFileChooser();
     private final JComboBox<String> logLevelOption = new JComboBox<>(LOG_LEVEL_OPTIONS);
     private final JCheckBox minimizeToTrayOption = new JCheckBox();
+    private final JCheckBox startMinimized = new JCheckBox();
     private final JTextField windowWidthOption = new JTextField();
     private final JTextField windowHeightOption = new JTextField();
     private final JTextField fontSizeOption = new JTextField();
@@ -55,10 +58,11 @@ public class SettingsWindow {
     private static final String[] LOG_LEVEL_OPTIONS = new String[] {"DEBUG", "INFO", "WARN", "ERROR"};
 
     private static final String HINT_UDP = "The UDP port used to receive and to send messages. It must be a number between 1 and 65535.";
-    private static final String HINT_IP = "The IP address(es) used to receive and to send messages. Comma is used as separator when using multiple IPs.";
+    private static final String HINT_IP = "The IP address(es) used for sending messages to. Comma is used as separator when using multiple IPs.";
     private static final String HINT_LOG_PATH = "Path to the log file. If blank, the log will be printed to the console and not be persisted.";
     private static final String HINT_LOG_LEVEL = "The minimum level to be printed on log. DEBUG prints all the app info, and ERROR only prints error messages.";
-    private static final String HINT_MINIMIZE = "Whether to add the app to the system's tray when it gets minimized.";
+    private static final String HINT_MINIMIZE_TO_TRAY = "Whether to add the app to the system's tray when it gets minimized.";
+    private static final String HINT_START_MINIMIZED = "Whether the app should start minimized.";
     private static final String HINT_WINDOW_WIDTH = "The width of the main window (in pixels).";
     private static final String HINT_WINDOW_HEIGHT = "The height of the main window (in pixels).";
     private static final String HINT_FONT_SIZE = "The font size to be used in the app's texts.";
@@ -68,13 +72,34 @@ public class SettingsWindow {
     private static final String HINT_ON_RECEIVE_RESTORE = "Whether to restore the main window when a message is received and the app is in background.";
     
 
-    private SettingsWindow() {
+    public SettingsWindow() {
+        settingsFrame = new JFrame("Settings");
+        setWindowSize();
+
+        createContentPane();
+        initializeValues();
+        restrictInputs();
+        setUpdateEvents();
+
+        Screen.centralizeWindow(settingsFrame);
+        settingsFrame.setVisible(true);
+        SwingComponents.refresh(contentPane);
+
+        config.addPropertyChangeListener(this);
+    }
+
+    private void setWindowSize() {
+        settingsFrame.setSize(config.getProportionalWidth(60), config.getWindowHeight());
+    }
+
+    private void createContentPane() {
         var optionPanes = new ArrayList<JPanel>();
         optionPanes.add(createOptionPanel("UDP port", udpPortOption, 20, HINT_UDP));
         optionPanes.add(createOptionPanel("IP address", ipOption, 80, HINT_IP));
         optionPanes.add(createOptionPanel("log file folder", createLogFilePanel(), 90, HINT_LOG_PATH));
         optionPanes.add(createOptionPanel("log level", logLevelOption, 40, HINT_LOG_LEVEL));
-        optionPanes.add(createOptionPanel("Minimize to tray", minimizeToTrayOption, 10, HINT_MINIMIZE));
+        optionPanes.add(createOptionPanel("Minimize to tray", minimizeToTrayOption, 10, HINT_MINIMIZE_TO_TRAY));
+        optionPanes.add(createOptionPanel("Start minimized", startMinimized, 10, HINT_START_MINIMIZED));
         optionPanes.add(createOptionPanel("Window width", windowWidthOption, 20, HINT_WINDOW_WIDTH));
         optionPanes.add(createOptionPanel("Window height", windowHeightOption, 20, HINT_WINDOW_HEIGHT));
         optionPanes.add(createOptionPanel("Font size", fontSizeOption, 15, HINT_FONT_SIZE));
@@ -82,32 +107,11 @@ public class SettingsWindow {
         optionPanes.add(createOptionPanel("Message max length", messageMaxLengthOption, 15, HINT_MESSAGE_MAX_LENGTH));
         optionPanes.add(createOptionPanel("Notify on message received", onReceiveNotifyOption, 10, HINT_ON_RECEIVE_NOTIFY));
         optionPanes.add(createOptionPanel("Restore on message received", onReceiveRestoreOption, 10, HINT_ON_RECEIVE_RESTORE));
-
-        initializeValues();
-        restrictInputs();
-        setUpdateEvents();
-        
-        settingsFrame = new JFrame("Settings");
-        settingsFrame.setSize(config.getProportionalWidth(60), config.getWindowHeight());
-        var contentPane = Layouts.fullVerticalPane(optionPanes);
+        contentPane = Layouts.fullVerticalPane(optionPanes);
+        config.getProportionalFont(60).apply(true, contentPane);
         int scrollSize = config.getProportionalHeight(5);
         var scrollPane = SwingComponents.createScrollPane(contentPane, scrollSize);
         settingsFrame.setContentPane(scrollPane);
-        config.getProportionalFont(60).apply(contentPane);
-        Screen.centralizeWindow(settingsFrame);
-        settingsFrame.setVisible(true);
-        SwingComponents.refresh(contentPane);
-    }
-
-    public static SettingsWindow getInstance() {
-        if (instance == null)
-            instance = new SettingsWindow();
-        return instance;
-    }
-
-    public static void updateFont() {
-        instance.settingsFrame.dispose();
-        instance = new SettingsWindow();
     }
 
     private JPanel createLogFilePanel() {
@@ -121,7 +125,6 @@ public class SettingsWindow {
                 return "Text/log files (*.log, *.txt)";
             }
         });
-        config.getProportionalFont(60).apply(true, fileChooser);
         logPathChooserButton.addActionListener(e -> {
             fileChooser.setSelectedFile(new File(logPathOption.getText().isBlank() ? "lanpush.log" : logPathOption.getText()));
             if (fileChooser.showOpenDialog(MainWindow.INST.mainFrame) == JFileChooser.APPROVE_OPTION) {
@@ -181,6 +184,7 @@ public class SettingsWindow {
         logPathOption.setText(config.getLogPath());
         logLevelOption.setSelectedItem(config.getLogLevel().name());
         minimizeToTrayOption.setSelected(config.minimizeToTray());
+        startMinimized.setSelected(config.startMinimized());
         windowWidthOption.setText(String.valueOf(config.getWindowWidth()));
         windowHeightOption.setText(String.valueOf(config.getWindowHeight()));
         fontSizeOption.setText(String.valueOf(config.getFontSize()));
@@ -191,24 +195,25 @@ public class SettingsWindow {
     }
 
     private void setUpdateEvents() {
-        udpPortOption.addFocusListener(new configChanged(() -> config.setUdpPort(udpPortOption.getText())));
-        ipOption.addFocusListener(new configChanged(() -> config.setIp(ipOption.getText())));
-        logPathOption.addFocusListener(new configChanged(() -> {logPathChanged();}));
-        logPathChooserButton.addFocusListener(new configChanged(() -> {logPathChanged();}));
-        logLevelOption.addFocusListener(new configChanged(() -> config.setLogLevel(LogLevel.valueOf(logLevelOption.getSelectedItem().toString()))));
-        minimizeToTrayOption.addFocusListener(new configChanged(() -> config.setMinimizeToTray(minimizeToTrayOption.isSelected())));
-        windowWidthOption.addFocusListener(new configChanged(() -> config.setWindowWidth(windowWidthOption.getText())));
-        windowHeightOption.addFocusListener(new configChanged(() -> config.setWindowHeight(windowHeightOption.getText())));
-        fontSizeOption.addFocusListener(new configChanged(() -> config.setFontSize(fontSizeOption.getText())));
-        messageDateFormatOption.addFocusListener(new configChanged(() -> config.setDateFormat(messageDateFormatOption.getText())));
-        messageMaxLengthOption.addFocusListener(new configChanged(() -> config.setMaxLength(messageMaxLengthOption.getText())));
-        onReceiveNotifyOption.addFocusListener(new configChanged(() -> config.setOnReceiveNotify(onReceiveNotifyOption.isSelected())));
-        onReceiveRestoreOption.addFocusListener(new configChanged(() -> config.setOnReceiveRestore(onReceiveRestoreOption.isSelected())));
+        udpPortOption.addFocusListener(new ConfigChanged(() -> config.setUdpPort(udpPortOption.getText())));
+        ipOption.addFocusListener(new ConfigChanged(() -> config.setIp(ipOption.getText())));
+        logPathOption.addFocusListener(new ConfigChanged(() -> {logPathChanged();}));
+        logPathChooserButton.addFocusListener(new ConfigChanged(() -> {logPathChanged();}));
+        logLevelOption.addFocusListener(new ConfigChanged(() -> config.setLogLevel(LogLevel.valueOf(logLevelOption.getSelectedItem().toString()))));
+        minimizeToTrayOption.addFocusListener(new ConfigChanged(() -> config.setMinimizeToTray(minimizeToTrayOption.isSelected())));
+        startMinimized.addFocusListener(new ConfigChanged(() -> config.setStartMinimized(startMinimized.isSelected())));
+        windowWidthOption.addFocusListener(new ConfigChanged(() -> config.setWindowWidth(windowWidthOption.getText())));
+        windowHeightOption.addFocusListener(new ConfigChanged(() -> config.setWindowHeight(windowHeightOption.getText())));
+        fontSizeOption.addFocusListener(new ConfigChanged(() -> config.setFontSize(fontSizeOption.getText())));
+        messageDateFormatOption.addFocusListener(new ConfigChanged(() -> config.setDateFormat(messageDateFormatOption.getText())));
+        messageMaxLengthOption.addFocusListener(new ConfigChanged(() -> config.setMaxLength(messageMaxLengthOption.getText())));
+        onReceiveNotifyOption.addFocusListener(new ConfigChanged(() -> config.setOnReceiveNotify(onReceiveNotifyOption.isSelected())));
+        onReceiveRestoreOption.addFocusListener(new ConfigChanged(() -> config.setOnReceiveRestore(onReceiveRestoreOption.isSelected())));
     }
 
-    private class configChanged implements FocusListener {
+    private class ConfigChanged implements FocusListener {
         Runnable updateAction;
-        configChanged(Runnable updateAction) {
+        ConfigChanged(Runnable updateAction) {
             this.updateAction = updateAction;
         }
         @Override
@@ -229,5 +234,13 @@ public class SettingsWindow {
         SwingComponents.restrictInput(ipOption, onlyNumbersDotsAndCommasRegex);
     }
 
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        switch (evt.getPropertyName()) {
+            case Config.EVENT_CONFIG_CHANGED + Config.GUI_FONT_SIZE_KEY -> {createContentPane(); SwingComponents.refresh(settingsFrame);}
+            case Config.EVENT_CONFIG_CHANGED + Config.GUI_WINDOW_WIDTH_KEY -> setWindowSize();
+            case Config.EVENT_CONFIG_CHANGED + Config.GUI_WINDOW_HEIGHT_KEY -> setWindowSize();
+        }
+    }
 
 }

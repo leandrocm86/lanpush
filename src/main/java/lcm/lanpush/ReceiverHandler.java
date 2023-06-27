@@ -3,6 +3,7 @@ package lcm.lanpush;
 import java.io.IOException;
 
 import lanpush.connectors.Receiver;
+import lcm.java.system.Sys;
 import lcm.java.system.logging.OLog;
 
 class ReceiverHandler {
@@ -12,7 +13,12 @@ class ReceiverHandler {
     public static final ReceiverHandler INST = new ReceiverHandler();
     private Receiver receiver = new Receiver();
     
-    private ReceiverHandler() {}
+    private ReceiverHandler() {
+        Sys.addShutdownHook(() -> {
+            OLog.info("Shutting down and disconnecting...");
+            receiver.stop();
+        });
+    }
 
     void startListening() {
         int port = config.getUdpPort();
@@ -20,7 +26,7 @@ class ReceiverHandler {
             try {
                 MainWindow.INST.updateStatus(true, "Listening on port " + port);
                 String receivedMessage;
-                while ((receivedMessage = receiver.listen(port, null)) != null) // TODO: Remover o segundo parametro, e mover shutdown para Sys.
+                while ((receivedMessage = receiver.listen(port)) != null) // TODO: Remover o segundo parametro, e mover shutdown para Sys.
                     displayMessage(receivedMessage);
             } catch (IOException e) {
                 MainWindow.INST.updateStatus(false, "Error while listening on port " + port + ". Read the logs for details.");

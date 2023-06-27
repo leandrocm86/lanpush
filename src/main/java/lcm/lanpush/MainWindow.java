@@ -38,6 +38,7 @@ import lcm.java.system.logging.OLog;
 public class MainWindow implements PropertyChangeListener {
 
 	static final Config config = Config.getInstance();
+	static final ReceiverHandler receiverHandler = ReceiverHandler.getInstance();
 
     public static final MainWindow INST = new MainWindow();
 
@@ -86,11 +87,11 @@ public class MainWindow implements PropertyChangeListener {
 
 		stopItem.addActionListener(actionEvent ->  {
 			OLog.info("Stopping...");
-			ReceiverHandler.INST.stopListening();
+			receiverHandler.stopListening();
 		});
 		reconnectItem.addActionListener(actionEvent ->  {
 			OLog.info("Reconnecting...");
-			ReceiverHandler.INST.reconnect();
+			receiverHandler.reconnect();
 		});
 		settingsItem.addActionListener(actionEvent ->  {
 			OLog.info("Opening settings...");

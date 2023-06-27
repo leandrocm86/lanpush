@@ -1,16 +1,18 @@
 package lcm.lanpush;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.IOException;
 
 import lanpush.connectors.Receiver;
 import lcm.java.system.Sys;
 import lcm.java.system.logging.OLog;
 
-class ReceiverHandler {
+class ReceiverHandler implements PropertyChangeListener {
 
     static final Config config = Config.getInstance();
 
-    public static final ReceiverHandler INST = new ReceiverHandler();
+    private static final ReceiverHandler INST = new ReceiverHandler();
     private Receiver receiver = new Receiver();
     
     private ReceiverHandler() {
@@ -20,13 +22,17 @@ class ReceiverHandler {
         });
     }
 
+    public static ReceiverHandler getInstance() {
+        return INST;
+    }
+
     void startListening() {
         int port = config.getUdpPort();
         new Thread(() -> {
             try {
                 MainWindow.INST.updateStatus(true, "Listening on port " + port);
                 String receivedMessage;
-                while ((receivedMessage = receiver.listen(port)) != null) // TODO: Remover o segundo parametro, e mover shutdown para Sys.
+                while ((receivedMessage = receiver.listen(port)) != null)
                     displayMessage(receivedMessage);
             } catch (IOException e) {
                 MainWindow.INST.updateStatus(false, "Error while listening on port " + port + ". Read the logs for details.");
@@ -48,5 +54,11 @@ class ReceiverHandler {
     private void displayMessage(String receivedMessage) {
         OLog.info("Received message: " + receivedMessage);
         MainWindow.INST.createMessageEntry(receivedMessage);
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+		if (evt.getPropertyName().equals(Config.EVENT_CONFIG_CHANGED + Config.CONNECTION_UDP_PORT_KEY))
+			reconnect();
     }
 }

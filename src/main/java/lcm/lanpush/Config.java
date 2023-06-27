@@ -63,9 +63,7 @@ public class Config {
 	}
 
 	public void setUdpPort(String port) {
-		if (changeInt(CONNECTION_UDP_PORT_KEY, getUdpPort(), port)) {
-			ReceiverHandler.INST.reconnect();
-		}
+		changeInt(CONNECTION_UDP_PORT_KEY, getUdpPort(), port);
 	}
 
 	public void addPropertyChangeListener(PropertyChangeListener listener) {

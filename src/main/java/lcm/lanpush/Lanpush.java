@@ -10,11 +10,12 @@ import lcm.java.system.logging.OLog;
 public class Lanpush {
 
 	static final Config config = Config.getInstance();
+	static final ReceiverHandler receiverHandler = ReceiverHandler.getInstance();
 
 	public static void main(String[] args) {
 		try {
 			OLog.info("Starting LANPUSH");
-			ReceiverHandler.INST.startListening();
+			receiverHandler.startListening();
 			MainWindow.INST.windowStart();
 		}
 		catch (Throwable t) {

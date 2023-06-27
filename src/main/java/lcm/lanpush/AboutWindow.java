@@ -14,6 +14,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.event.HyperlinkEvent;
 
 import lcm.java.swing.Images;
@@ -81,6 +82,8 @@ public class AboutWindow {
         Screen.centralizeWindow(aboutFrame);
         aboutFrame.setVisible(true);
         aboutFrame.toFront();
+        
+        SwingUtilities.invokeLater(() -> scrollPane.getVerticalScrollBar().setValue(0));
     }
 
 }

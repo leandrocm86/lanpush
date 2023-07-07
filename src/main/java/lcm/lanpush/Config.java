@@ -41,7 +41,7 @@ public class Config {
 		OLog.setMinimumLevel(getLogLevel());
 		if (getLogPath() != null && !getLogPath().isBlank())
 			OLog.setFilePath(getLogPath());
-		// else // TODO: DESCOMENTAR QUANDO ESTIVER PRONTO
+		else 
 			OLog.setPrintStream(System.out);
 
 		if (getLogLevel() == LogLevel.DEBUG) {
@@ -111,8 +111,8 @@ public class Config {
 		return prefs.getBoolean(GUI_START_MINIMIZED_KEY, false);
 	}
 
-	public void setStartMinimized(boolean start) {
-		changeBoolean(GUI_START_MINIMIZED_KEY, startMinimized(), start);
+	public void setStartMinimized(boolean startMinimized) {
+		changeBoolean(GUI_START_MINIMIZED_KEY, startMinimized(), startMinimized);
 	}
 
 	public int getWindowWidth() {

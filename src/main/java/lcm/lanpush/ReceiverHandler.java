@@ -20,6 +20,7 @@ class ReceiverHandler implements PropertyChangeListener {
             OLog.info("Shutting down and disconnecting...");
             receiver.stop();
         });
+        config.addPropertyChangeListener(this);
     }
 
     public static ReceiverHandler getInstance() {
@@ -58,7 +59,9 @@ class ReceiverHandler implements PropertyChangeListener {
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-		if (evt.getPropertyName().equals(Config.EVENT_CONFIG_CHANGED + Config.CONNECTION_UDP_PORT_KEY))
+		if (evt.getPropertyName().equals(Config.EVENT_CONFIG_CHANGED + Config.CONNECTION_UDP_PORT_KEY)) {
+            OLog.info("Port number changed. Receiver will reconnect...");
 			reconnect();
+        }
     }
 }

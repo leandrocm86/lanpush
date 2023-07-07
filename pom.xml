@@ -10,7 +10,7 @@
   	<dependency>
   		<groupId>com.github.leandrocm86</groupId>
   		<artifactId>java-system-utils</artifactId>
-  		<version>1.2</version>
+  		<version>1.2.1</version>
   	</dependency>
     <dependency>
   		<groupId>com.github.leandrocm86</groupId>
@@ -20,7 +20,7 @@
     <dependency>
   		<groupId>com.github.leandrocm86</groupId>
   		<artifactId>lanpush-cli</artifactId>
-  		<version>1.0.4</version>
+  		<version>1.0.6</version>
   	</dependency>
   </dependencies>
   <repositories>

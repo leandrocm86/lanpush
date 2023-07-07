@@ -159,7 +159,7 @@ public class MainWindow implements PropertyChangeListener {
     	JButton copyBtn = new JButton("copy");
     	copyBtn.addActionListener(actionEvent -> {
 			Sys.setClipboard(msg);
-			Toast.makeToast((JFrame) messagePane.getParent(), "Copied!", 2);
+			Toast.makeToast(mainFrame, "Copied!", 2);
 		});
     	JButton browseBtn = new JButton("browse");
     	browseBtn.addActionListener(actionEvent -> {

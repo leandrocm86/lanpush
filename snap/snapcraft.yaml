@@ -1,0 +1,82 @@
+# Execute with 'snapcraft' when inside the project's root folder.
+# The resulting snap can then be installed with 'sudo snap install lanpush-gui_x.y.z_amd64.snap' # additional flags for development:--devmode --dangerous
+# To publish the snap, run 'snapcraft push lanpush-gui_<version>_<arch>.snap'
+
+name: lanpush-gui # you probably want to 'snapcraft register <name>'
+base: core20 # the base snap is the execution environment for this snap
+version: '2.0'
+summary: Utility to exchange text messages between devices in the same local network.
+description: |
+  This is the GUI version (desktop) client for LANPUSH.
+  With LANPUSH all devices in the same LAN can read and write messages between themselves.
+  No internet or login required!
+
+grade: stable # must be 'stable' to release into candidate/stable channels, or 'devel' to release into development channels
+confinement: strict # use 'strict' once you have the right plugs and slots, or 'devmode' for development only
+
+apps:
+  lanpush-gui:
+    command: lanpush-gui.sh
+    desktop: lanpush.desktop
+    plugs:
+      - network
+      - desktop
+      - desktop-legacy
+      - wayland
+      - x11
+      - home
+    environment:
+      JAVA_HOME: $SNAP/usr/lib/jvm/java-17-openjdk-amd64
+      PATH: $JAVA_HOME/bin:$PATH
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
+      # FONTCONFIG_PATH: $SNAP/usr/share/fonts
+      # FONTCONFIG_FILE: $SNAP/etc/fonts/fonts.conf
+
+# --- CONFIGURATION FOR LOCAL BUILD ---
+parts:
+  lanpush-gui:   
+    plugin: dump
+    source: target/
+    organize:
+      lanpush-jar-with-dependencies.jar: lanpush-gui.jar
+    build-packages:
+      - ca-certificates
+      - ca-certificates-java
+      - openjdk-17-jdk
+      # - locales
+    stage-packages:
+      - openjdk-17-jre
+      # - locales
+    # override-build: |
+    #   snapcraftctl build
+    #   mkdir -p $SNAPCRAFT_PART_INSTALL/etc/fonts
+    #   echo -e "<?xml version=\"1.0\"?>\n<!DOCTYPE fontconfig SYSTEM \"fonts.dtd\">\n<fontconfig>\n  <dir>/usr/share/fonts</dir>\n  <cachedir>/var/cache/fontconfig</cachedir>\n  <config></config>\n</fontconfig>" > $SNAPCRAFT_PART_INSTALL/etc/fonts/fonts.conf
+    #   cp -R /etc/fonts/* $SNAPCRAFT_PART_INSTALL/etc/fonts
+  
+  local-dir:
+    plugin: dump
+    source: snap/local
+  gui-dir:
+    plugin: dump
+    source: snap/gui
+    
+# --- CONFIGURATION FOR MAVEN BUILD FROM REPOSITORY ---
+# MAVEN WAS DISCONTINUED IN CORE 20, BUT IS COMING BACK IN CORE 22 (NOT STABLE YET)
+# DISCUSSION: https://forum.snapcraft.io/t/maven-plugin-missing-in-core20/29044/15
+# parts:
+#   lanpush-cli:
+#     plugin: maven
+#     source: https://github.com/leandrocm86/lanpush-cli.git
+#     source-type: git
+#     # source_tag: master
+#     maven-parameters: # maven-options (core 18) changed to maven-parameters (core 22)
+#       [-DskipTests=true]
+#     organize:
+#       ../target/: target/
+#       ../snap/local/: wrapper/
+#     build-packages:
+#       - default-jdk-headless
+#       - maven
+#     stage-packages:
+#       - default-jre-headless

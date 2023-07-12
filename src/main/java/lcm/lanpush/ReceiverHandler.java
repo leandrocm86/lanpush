@@ -14,6 +14,8 @@ class ReceiverHandler implements PropertyChangeListener {
 
     private static final ReceiverHandler INST = new ReceiverHandler();
     private Receiver receiver = new Receiver();
+
+    private boolean stopSignal = false;
     
     private ReceiverHandler() {
         Sys.addShutdownHook(() -> {
@@ -36,18 +38,22 @@ class ReceiverHandler implements PropertyChangeListener {
                 while ((receivedMessage = receiver.listen(port)) != null)
                     displayMessage(receivedMessage);
             } catch (IOException e) {
-                MainWindow.INST.updateStatus(false, "Error while listening on port " + port + ". Read the logs for details.");
-                OLog.error(e, "Error while listening on port " + port);
+                if (!this.stopSignal) {
+                    MainWindow.INST.updateStatus(false, "Error while listening on port " + port + ". Read the logs for details.");
+                    OLog.error(e, "Error while listening on port " + port);
+                }
             }
         }).start();
     }
 
 	void stopListening() {
+        stopSignal = true;
 		receiver.stop();
         MainWindow.INST.updateStatus(false, "Stopped listening.");
 	}
 
     void reconnect() {
+        OLog.info("Reconnecting...");
         stopListening();
         startListening();
     }

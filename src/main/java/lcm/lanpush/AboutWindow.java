@@ -51,7 +51,7 @@ public class AboutWindow {
         image = Images.resizeByHeight(image, config.getProportionalHeight(15));
         appIcon.setIcon(new ImageIcon(image));
         appIcon.setHorizontalAlignment(SwingConstants.CENTER);
-        var versionLabel = new JLabel("version: 2.0");
+        var versionLabel = new JLabel("version: 2.0.1");
         var topPane = Layouts.verticalPane(Arrays.asList(appIcon, versionLabel), 7, 3);
 
         descriptionText = new JEditorPane();

@@ -222,6 +222,7 @@ public class MainWindow implements PropertyChangeListener {
 	}
 
 	public void updateStatus(boolean listening, String text) {
+		OLog.info("Changing status: " + text);
 		statusLabel.setBackground(listening ? Color.GREEN : Color.RED);
 		statusLabel.setText(text);
 	}

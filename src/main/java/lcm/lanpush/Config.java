@@ -15,8 +15,6 @@ import lcm.java.system.logging.OLog;
 
 public class Config {
 	
-	private Preferences prefs = Preferences.userRoot().node("lcm.lanpush");
-
 	public static final String CONNECTION_UDP_PORT_KEY = "connection.udp_port";
 	public static final String CONNECTION_IP_KEY = "connection.ip";
 	public static final String LOG_PATH_KEY = "log.file.path";
@@ -31,9 +29,11 @@ public class Config {
 	public static final String GUI_ON_RECEIVE_NOTIFY = "gui.on_receive.notify";
 	public static final String GUI_ON_RECEIVE_RESTORE = "gui.on_receive.restore";
 
-	private static PropertyChangeSupport propertyObservable = new PropertyChangeSupport(new Config());
-
 	public static final String EVENT_CONFIG_CHANGED = "event.config_changed.";
+	
+	private static PropertyChangeSupport propertyObservable = new PropertyChangeSupport(new Config());
+	
+	private Preferences prefs = Preferences.userRoot().node("lcm.lanpush");
 
 	private static final Config instance = new Config();
 
@@ -47,7 +47,7 @@ public class Config {
 		if (getLogLevel() == LogLevel.DEBUG) {
 			try {
 				String loadedPrefs = List.of(prefs.keys()).stream().map(key -> key + " = " + prefs.get(key, null)).collect(Collectors.joining("\n"));
-				OLog.debug("Loaded preferences:\n%s", loadedPrefs);
+				OLog.debug("Loaded preferences from '%s':\n%s", prefs.absolutePath(), loadedPrefs);
 			} catch (BackingStoreException e) {
 				OLog.error(e, "Could not print preferences!");
 			}

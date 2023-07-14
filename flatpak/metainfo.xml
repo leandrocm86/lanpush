@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+  <id>org.lanpush.lanpush-gui</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0</project_license>
+  <name>lanpush-gui</name>
+  <summary>Utility to exchange text messages between devices in the same local network.</summary>
+  <description>
+    <p>This is the GUI version (desktop) client for LANPUSH.</p>
+    <p>With LANPUSH all devices in the same LAN can read and write messages between themselves.</p>
+    <p>No internet or login required!</p>
+  </description>
+  <releases>
+    <release version="2.0.1" date="2023-07-12"/>
+  </releases>
+</component>

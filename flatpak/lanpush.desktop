@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=LANPUSH
+Comment=Share texts through LAN
+Exec=/app/bin/org.lanpush.lanpush-gui.sh
+Icon=org.lanpush.lanpush-gui
+Terminal=false
+Type=Application
+Categories=Network;Utility;

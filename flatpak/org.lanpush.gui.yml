@@ -1,0 +1,52 @@
+# Before building:
+#   flatpak install org.freedesktop.Platform
+#   flatpak install org.freedesktop.Sdk
+#   flatpak install org.freedesktop.Sdk.Extension.openjdk17
+# Build:
+#   flatpak-builder --install --user --force-clean flatpak-build flatpak/org.lanpush.gui.yml
+app-id: org.lanpush.lanpush-gui
+runtime: org.freedesktop.Platform
+runtime-version: '21.08'
+sdk: org.freedesktop.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.openjdk17
+command: /app/bin/org.lanpush.lanpush-gui.sh
+
+finish-args:
+  - --env=PATH=/app/jre/bin:/usr/bin
+  - --socket=x11 
+  - --socket=wayland 
+  - --share=ipc 
+  - --device=dri 
+  - --filesystem=home 
+  - --share=network 
+  
+modules:
+  - name: openjdk
+    buildsystem: simple
+    build-commands:
+      - ls -l /usr/lib/sdk/openjdk17
+      - /usr/lib/sdk/openjdk17/install.sh
+  - name: lanpush-gui
+    buildsystem: simple
+    build-commands:
+      - install -D lanpush-jar-with-dependencies.jar /app/bin/org.lanpush.lanpush-gui.jar
+      - install -D lanpush-gui.sh /app/bin/org.lanpush.lanpush-gui.sh
+      - install -D lanpush.png /app/share/icons/hicolor/512x512/apps/org.lanpush.lanpush-gui.png
+      - install -D lanpush.desktop /app/share/applications/org.lanpush.lanpush-gui.desktop
+      - install -D metainfo.xml /app/share/metainfo/${FLATPAK_ID}.metainfo.xml
+    sources:
+      - type: file
+        path: ../target/lanpush-jar-with-dependencies.jar
+      - type: file
+        path: ./lanpush-gui.sh
+      - type: file
+        path: ../src/main/resources/lanpush.png
+      - type: file
+        path: ./lanpush.desktop
+      - type: file
+        path: ./lanpush.desktop
+      - type: file
+        path: ./metainfo.xml
+
+
